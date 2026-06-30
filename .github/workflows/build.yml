@@ -23,21 +23,8 @@ jobs:
 
       - name: Build Executables
         run: |
-          # Build GUI
-          pyinstaller -y -F -w -i "extra/DUCE-LOGO.ico" --clean --name "DUCE-GUI-windows" `
-          --add-data "base.py;." `
-          --add-data "default-duce-gui-settings.json;." `
-          --add-data "README.md;." `
-          --add-data "LICENSE;." `
-          "gui.py"
-
-          # Build CLI
-          pyinstaller -y -F -c -i "extra/DUCE-LOGO.ico" --clean --name "DUCE-CLI-windows" `
-          --add-data "base.py;." `
-          --add-data "default-duce-cli-settings.json;." `
-          --add-data "README.md;." `
-          --add-data "LICENSE;." `
-          "cli.py"
+          pyinstaller -y DUCE-GUI-windows.spec
+          pyinstaller -y DUCE-CLI-windows.spec
 
       - name: Upload Windows Package
         uses: actions/upload-artifact@v4
@@ -50,7 +37,7 @@ jobs:
         id: get_version
         shell: pwsh
         run: |
-          $version = (Select-String -Path .\base.py -Pattern 'VERSION = "(v.*?)"').Matches.Groups[1].Value
+          $version = (Select-String -Path .\duce\core\config.py -Pattern 'VERSION = "(v.*?)"').Matches.Groups[1].Value
           echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           echo "TAG=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
