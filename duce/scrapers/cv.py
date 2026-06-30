@@ -17,7 +17,7 @@ def scrape_cv(scraper):
 
         try:
             nonce = re.search(
-                r"load_content\"\:\"(.*?)\"", content.decode("utf-8"), re.DOTALL
+                r"load_content\"\:\"(.*?)\"", _cv_result.text, re.DOTALL
             ).group(1)
             logger.debug(f"Nonce: {nonce}")
         except (IndexError, AttributeError) as e:
