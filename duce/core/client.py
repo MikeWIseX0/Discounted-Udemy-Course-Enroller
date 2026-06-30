@@ -182,7 +182,8 @@ class Udemy:
             "proxies": {"http": "", "https": ""},
             "discord_webhook_url": "",
             "allow_insecure_ssl_fallback": False,
-            "network_timeout": 60
+            "network_timeout": 60,
+            "verbose_logging": False
         }
 
         # Merge missing top-level and dictionary-level keys

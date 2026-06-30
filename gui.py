@@ -12,6 +12,11 @@ from webbrowser import open as web
 from base import LINKS, VERSION, LoginException, Scraper, Udemy, scraper_dict, logger, get_user_data_path
 from duce.core.images import icon
 
+# Configure loguru: suppress DEBUG noise by default, only show INFO and above
+logger.remove()
+logger.add(sys.stderr, level="INFO",
+           format="<level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
+
 
 def verify_dependencies():
     required = {
@@ -1613,7 +1618,22 @@ class ExclusionsPage(ctk.CTkFrame):
             fg_color="#2ECC71"
         )
         self.allow_ssl_fallback_cb.grid(
-            row=3, column=0, padx=15, pady=(8, 15), sticky="w")
+            row=3, column=0, padx=15, pady=8, sticky="w")
+
+        self.verbose_logging_var = tk.BooleanVar(
+            value=self.app.udemy.settings.get("verbose_logging", False))
+        self.verbose_logging_cb = ctk.CTkCheckBox(
+            self.options_frame,
+            text="Enable verbose logging (Show detailed debug output)",
+            variable=self.verbose_logging_var,
+            text_color="#E1E1E6",
+            font=("Segoe UI", 12),
+            border_color="#A0A0A5",
+            hover_color="#2ECC71",
+            fg_color="#2ECC71"
+        )
+        self.verbose_logging_cb.grid(
+            row=4, column=0, padx=15, pady=(8, 15), sticky="w")
 
     def update_rating_label(self, val):
         self.rating_label_var.set(
@@ -2424,6 +2444,7 @@ class App(ctk.CTk):
         values["save_txt"] = self.main_frame.exclusions_page.save_txt_var.get()
         values["discounted_only"] = self.main_frame.exclusions_page.discounted_only_var.get()
         values["allow_insecure_ssl_fallback"] = self.main_frame.exclusions_page.allow_ssl_fallback_var.get()
+        values["verbose_logging"] = self.main_frame.exclusions_page.verbose_logging_var.get()
         return values
 
     def start_process(self):
@@ -2452,7 +2473,15 @@ class App(ctk.CTk):
         self.udemy.settings["save_txt"] = values["save_txt"]
         self.udemy.settings["discounted_only"] = values["discounted_only"]
         self.udemy.settings["allow_insecure_ssl_fallback"] = values["allow_insecure_ssl_fallback"]
+        self.udemy.settings["verbose_logging"] = values["verbose_logging"]
         self.udemy.save_settings()
+
+        # Reconfigure loguru log level based on setting
+        verbose = self.udemy.settings.get("verbose_logging", False)
+        log_level = "DEBUG" if verbose else "INFO"
+        logger.remove()
+        logger.add(sys.stderr, level=log_level,
+                   format="<level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
 
         settings_invalid = self.udemy.validate_settings()
         if settings_invalid:

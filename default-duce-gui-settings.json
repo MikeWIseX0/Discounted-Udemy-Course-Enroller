@@ -62,5 +62,6 @@
     "discounted_only": false,
     "course_update_threshold_months": 24,
     "allow_insecure_ssl_fallback": false,
-    "network_timeout": 60
+    "network_timeout": 60,
+    "verbose_logging": false
 }

@@ -1,4 +1,25 @@
 from base import VERSION, LoginException, Scraper, Udemy, scraper_dict, logger, get_user_data_path
+import sys as _sys
+
+# Loguru log sink ID, used to reconfigure dynamically
+_log_sink_id = None
+
+
+def configure_logging(verbose=False):
+    """Configure loguru log level. Call after settings load or toggle."""
+    global _log_sink_id
+    if _log_sink_id is not None:
+        logger.remove(_log_sink_id)
+    level = "DEBUG" if verbose else "INFO"
+    _log_sink_id = logger.add(
+        _sys.stderr, level=level,
+        format="<level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
+    )
+
+
+# Remove default sink and start with INFO (before settings are loaded)
+logger.remove()
+configure_logging(verbose=False)
 from rich import box
 from rich.text import Text
 from rich.table import Table
@@ -398,6 +419,8 @@ def edit_other_settings(udemy_obj: Udemy):
             udemy_obj.settings.get("instructor_exclude", [])) or "None")
         table.add_row("6", "Excluded Title Keywords (List)", ", ".join(
             udemy_obj.settings.get("title_exclude", [])) or "None")
+        table.add_row("7", "Verbose Logging (Debug Output)",
+                      "[green]Enabled[/green]" if udemy_obj.settings.get("verbose_logging", False) else "[red]Disabled[/red]")
 
         console.print(table)
         console.print(
@@ -445,6 +468,11 @@ def edit_other_settings(udemy_obj: Udemy):
             udemy_obj.settings["title_exclude"] = [k.strip()
                                                    for k in val.split(",") if k.strip()]
             udemy_obj.save_settings()
+        elif choice == "7":
+            udemy_obj.settings["verbose_logging"] = not udemy_obj.settings.get(
+                "verbose_logging", False)
+            udemy_obj.save_settings()
+            configure_logging(udemy_obj.settings["verbose_logging"])
 
 
 def edit_settings_menu(udemy_obj: Udemy):
@@ -495,20 +523,21 @@ def edit_settings_menu(udemy_obj: Udemy):
 def test_connection(udemy_obj: Udemy):
     console.print("\n[cyan]Attempting login connection test...[/cyan]")
     try:
-        if udemy_obj.settings["use_browser_cookies"]:
-            with console.status("[cyan]Reading browser cookies...[/cyan]"):
+        # Try cookies first (mirrors the startup login logic)
+        cookies_exist = os.path.exists(get_user_data_path("cookies.json")) or os.path.exists(get_user_data_path("udemy-cookies.json"))
+        if udemy_obj.settings.get("use_browser_cookies", False) or cookies_exist:
+            with console.status("[cyan]Logging in via cookies...[/cyan]"):
                 udemy_obj.fetch_cookies(
                     on_locked=cli_on_locked, on_select=cli_on_select)
-        else:
-            email = udemy_obj.settings.get("email", "")
-            password = udemy_obj.settings.get("password", "")
-            if not email or not password:
-                console.print(
-                    "[bold red]Error: Email and password not configured![/bold red]")
-                console.input("\nPress Enter to continue...")
-                return
+        elif udemy_obj.settings.get("email") and udemy_obj.settings.get("password"):
             with console.status("[cyan]Connecting using email/password...[/cyan]"):
-                udemy_obj.manual_login(email, password)
+                udemy_obj.manual_login(
+                    udemy_obj.settings["email"], udemy_obj.settings["password"])
+        else:
+            console.print(
+                "[bold red]Error: No cookies file or email/password configured![/bold red]")
+            console.input("\nPress Enter to continue...")
+            return
 
         with console.status("[cyan]Verifying session context...[/cyan]"):
             udemy_obj.get_session_info()
@@ -742,6 +771,7 @@ if __name__ == "__main__":
         logger.info(f"Starting CLI application (interactive={INTERACTIVE})")
         udemy = Udemy("cli")
         udemy.load_settings()
+        configure_logging(udemy.settings.get("verbose_logging", False))
         login_title, main_title = udemy.check_for_update()
 
         if INTERACTIVE:
