@@ -277,7 +277,8 @@ class CookieInstructionsDialog(ctk.CTkToplevel):
             font=("Segoe UI", 11),
             fg_color="#1C1C1E",
             border_color="#3A3A3C",
-            border_width=1
+            border_width=1,
+            wrap="word"
         )
         steps_box.grid(row=4, column=0, padx=20, pady=(0, 15), sticky="nsew")
 
