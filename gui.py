@@ -282,15 +282,40 @@ class CookieInstructionsDialog(ctk.CTkToplevel):
         )
         steps_box.grid(row=4, column=0, padx=20, pady=(0, 15), sticky="nsew")
 
-        steps_text = (
-            "Step 1: Install the 'Cookie-Editor' extension in Chrome, Firefox, Edge, or Brave.\n\n\n"
-            "Step 2: Log in to your Udemy account in your browser.\n\n\n"
-            "Step 3: Click the Cookie-Editor extension icon, then click 'Export' (select 'JSON') to copy cookies to clipboard.\n\n\n"
-            "Step 4: Click 'Extract & Auto Login' in this app to automatically import from clipboard and log in!\n\n\n"
-            "Alternative Option:\n\n"
-            "If clipboard auto-detection fails, click 'Open cookies.json' below, paste your copied cookies JSON into it, save/close, and try again."
-        )
-        steps_box.insert("1.0", steps_text)
+        # Define tags for formatting
+        steps_box.tag_config("bold", font=("Segoe UI", 11, "bold"), foreground="#FFFFFF")
+        steps_box.tag_config("highlight", font=("Segoe UI", 11, "bold"), foreground="#00F2FE")
+        steps_box.tag_config("normal", font=("Segoe UI", 11), foreground="#E1E1E6")
+
+        segments = [
+            ("Step 1: ", "bold"),
+            ("Install the '", "normal"),
+            ("Cookie-Editor", "highlight"),
+            ("' extension in Chrome, Firefox, Edge, or Brave.\n\n\n", "normal"),
+
+            ("Step 2: ", "bold"),
+            ("Log in to your Udemy account in your browser.\n\n\n", "normal"),
+
+            ("Step 3: ", "bold"),
+            ("Click the Cookie-Editor extension icon, then click '", "normal"),
+            ("Export", "highlight"),
+            ("' (select '", "normal"),
+            ("JSON", "highlight"),
+            ("') to copy cookies to clipboard.\n\n\n", "normal"),
+
+            ("Step 4: ", "bold"),
+            ("Click '", "normal"),
+            ("Extract & Auto Login", "highlight"),
+            ("' in this app to automatically import from clipboard and log in!\n\n\n", "normal"),
+
+            ("Alternative Option:\n\n", "bold"),
+            ("If clipboard auto-detection fails, click '", "normal"),
+            ("Open cookies.json", "highlight"),
+            ("' below, paste your copied cookies JSON into it, save/close, and try again.", "normal")
+        ]
+
+        for text, tag in segments:
+            steps_box.insert("end", text, tag)
         steps_box.configure(state="disabled")
 
         btn_frame = ctk.CTkFrame(self.frame, fg_color="transparent")

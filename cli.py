@@ -809,9 +809,9 @@ if __name__ == "__main__":
                         f"[bold yellow]Automatic browser cookie extraction is deprecated due to modern browser security restrictions (e.g. App-Bound Encryption).[/bold yellow]\n")
                     console.print(
                         "[bold cyan]How to import cookies manually:[/bold cyan]\n\n"
-                        "1. Export cookies in JSON format from your browser using the 'Cookie-Editor' extension.\n\n"
-                        "2. Copy them to your clipboard and choose 'Retry' (copied cookies are auto-detected).\n\n"
-                        "3. Or paste them directly into the file:\n"
+                        "[bold white]1.[/bold white] Export cookies in JSON format using the [bold cyan]'Cookie-Editor'[/bold cyan] extension.\n\n"
+                        "[bold white]2.[/bold white] Copy them to your clipboard and choose [bold cyan]'Retry'[/bold cyan] (copied cookies are auto-detected).\n\n"
+                        "[bold white]3.[/bold white] Or paste them directly into the file:\n"
                         f"   [cyan]{cookies_path}[/cyan]\n"
                     )
 
