@@ -40,7 +40,8 @@ def verify_dependencies():
         sys.exit(1)
 
 
-verify_dependencies()
+if not getattr(sys, 'frozen', False):
+    verify_dependencies()
 
 # Set up global CustomTkinter themes
 ctk.set_appearance_mode("Dark")

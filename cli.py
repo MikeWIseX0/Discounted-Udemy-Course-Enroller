@@ -45,7 +45,8 @@ def verify_dependencies():
         sys.exit(1)
 
 
-verify_dependencies()
+if not getattr(sys, 'frozen', False):
+    verify_dependencies()
 
 
 def center_console_window():
