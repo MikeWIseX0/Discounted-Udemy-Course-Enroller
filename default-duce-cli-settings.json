@@ -41,12 +41,13 @@
         "Real Discount": true,
         "Courson": true,
         "IDownloadCoupons": true,
-        "Tutorial Bar": true,
-        "E-next": true,
+        "Tutorial Bar": false,
+        "E-next": false,
         "Discudemy": true,
         "Udemy Freebies": true,
-        "Course Joiner": true,
-        "Course Vania": true
+        "Course Joiner": false,
+        "Course Vania": false,
+        "Coupon Scorpion": true
     },
     "min_rating": 0.0,
     "instructor_exclude": [
@@ -63,5 +64,6 @@
     "save_txt": true,
     "discounted_only": false,
     "use_browser_cookies": false,
-    "course_update_threshold_months": 24
+    "course_update_threshold_months": 24,
+    "allow_insecure_ssl_fallback": false
 }

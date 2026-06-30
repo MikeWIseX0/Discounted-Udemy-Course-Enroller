@@ -1,14 +1,49 @@
+# IDEs and Editors
 .vscode/
+
+# Project Directories
 /testings
 /Courses
 /debug
 /build
 /dist
 /output
+
+# Python cache and testing
+__pycache__/
 *.pyc
+.pytest_cache/
+.mypy_cache/
+.tox/
+.coverage
+htmlcov/
+
+# Database files and backups
+*.db
+*.db.bak
+*.bak
+
+# Temporary and specific project files
 tempCodeRunnerFile.py
 duce.py
 gui-test.py
 duce-gui-settings.json
 duce-cli-settings.json
 *.log
+log.txt
+cookies.json
+udemy-cookies.json
+temp_*_cookies
+
+# Build Artifacts
+*.spec
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# OS-generated files
+.DS_Store
+Thumbs.db

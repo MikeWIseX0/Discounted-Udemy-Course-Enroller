@@ -1,5 +1,14 @@
 # Changelog
 
+## v3.0.0
+- Re-architected enroller into a modular, clean package structure under `duce/` namespace
+- Centralized network configurations, scraper headers, and site base URLs for clean code maintenance
+- Implemented robust network sessions using `curl_cffi` impersonation with automated, secure SSL fallbacks
+- Fixed critical enrollment filter bypass where excluded language/category courses with valid coupons were incorrectly enrolled
+- Improved validation cache to dynamically re-evaluate exclusion filters on cached data when settings change
+- Added thorough test coverage for core module models/database operations and offline scraping logic
+- Cleaned up CLI and GUI clients for better maintainability and logging consistency
+
 ## v2.3.6
 - Fix settings and log file not saving
 

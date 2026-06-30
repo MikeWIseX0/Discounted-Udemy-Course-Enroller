@@ -17,13 +17,13 @@ Everything you need can be on the website: https://techtanic.github.io/duce/
 
 ## Key Features
 
-- Beautiful GUI
-- One click login using Browser cookies.(Supports major browsers)
-- One click to add all available courses with coupons to your udemy account
-- Uses popular sites for coupons
-- Many more features
-- CLI version available for automation
-- Advanced filters
+- **Beautiful & Modern GUI**: Simple and responsive user interface for monitoring and execution.
+- **One-Click Cookie Login**: Direct session import using exported/browser cookies, bypassing App-Bound Encryption with clear guidelines.
+- **Fast Multithreaded Scraping**: Consolidates 10+ coupon sources concurrently using paced, structured parsing.
+- **Robust Network Stack**: Powered by `curl_cffi` browser impersonation to match real user signatures and bypass Cloudflare/TLS fingerprinting.
+- **Smart Validation Caching**: Leverages SQLite database caching with a 7-day TTL and automatic filter re-evaluation.
+- **Advanced Filtering**: Exclude courses by specific languages, categories, instructors, and custom title keywords.
+- **CLI Mode**: Built-in command line interface with beautiful rich text display for headless servers and automations.
 
 # Downloads
 
