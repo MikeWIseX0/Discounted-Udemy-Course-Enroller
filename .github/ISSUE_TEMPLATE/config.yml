@@ -1,11 +1,10 @@
 blank_issues_enabled: false
 contact_links:
-- name: 💬 Discord
-  url: https://discord.gg/wFsfhJh4Rh
-  about: |
-    For any other help or just discussion. 
-    
-- name: Telegram
-  url: https://t.me/techtanic
-  about: |
-    For any other help or just discussion. 
+  - name: Discord
+    url: https://discord.gg/wFsfhJh4Rh
+    about: |
+      For support, assistance, and discussion with the community.
+  - name: Telegram
+    url: https://t.me/techtanic
+    about: |
+      For discussions and community updates.
