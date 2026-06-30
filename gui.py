@@ -1051,8 +1051,8 @@ class ToolTip:
     def show_tip(self, event=None):
         if self.tip_window or not self.text:
             return
-        x = self.widget.winfo_rootx() + 25
-        y = self.widget.winfo_rooty() + 20
+        x = self.widget.winfo_rootx() + 15
+        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
         self.tip_window = tw = tk.Toplevel(self.widget)
         tw.wm_overrideredirect(1)
         tw.wm_geometry(f"+{x}+{y}")
@@ -1080,19 +1080,19 @@ class ToolTip:
 
 
 CATEGORY_DESCRIPTIONS = {
-    "Business": "Entrepreneurship, management, strategy, sales, and business communications.",
-    "Design": "Graphic design, web design, UI/UX, drawing, and 3D modeling/animation.",
-    "Development": "Software engineering, web development, coding languages, and databases.",
-    "Finance & Accounting": "Investing, accounting, bookkeeping, taxes, and personal finance.",
-    "Health & Fitness": "Nutrition, exercise/workout, yoga, mental health, and self-defense.",
-    "IT & Software": "Operating systems, networking, cyber security, hardware, and system admin.",
-    "Lifestyle": "Gaming, cooking/baking, crafts, home improvement, and pet training.",
-    "Marketing": "Digital marketing, SEO, social media, branding, and copywriting.",
-    "Music": "Learning instruments, music theory, vocals, and audio production software.",
-    "Office Productivity": "Microsoft Office (Excel/Word), Google Workspace, and task management.",
-    "Personal Development": "Productivity, leadership, self-esteem, public speaking, and soft skills.",
-    "Photography & Video": "Photography basics, video editing, lighting, and camera gear.",
-    "Teaching & Academics": "Academic subjects (Math, Science, History), exam prep, and research."
+    "Business": "Entrepreneurship, project management, leadership, business strategy, operations, sales, and corporate communications.",
+    "Design": "Graphic design, web design, UI/UX, architectural design, drawing, and design software (Photoshop, Figma, Blender).",
+    "Development": "Web development, data science, mobile apps, game development, databases, and programming languages (Python, Java, JavaScript, etc.).",
+    "Finance & Accounting": "Investing, stock trading, cryptocurrency, accounting, bookkeeping, taxes, and financial analysis.",
+    "Health & Fitness": "Fitness/workout, nutrition, yoga, meditation, mental health, sports, and martial arts/self-defense.",
+    "IT & Software": "IT certifications (AWS, CompTIA, Cisco), cyber security, computer networking, operating systems (Linux, Windows), and system administration.",
+    "Lifestyle": "Gaming, cooking/baking, arts & crafts, home improvement, gardening, beauty, and pet training.",
+    "Marketing": "Digital marketing, SEO, social media marketing, copywriting, branding, advertising, and marketing analytics.",
+    "Music": "Learning instruments (guitar, piano), music production (Ableton, FL Studio), music theory, vocals, and songwriting.",
+    "Office Productivity": "Microsoft Office (Word, Excel, PowerPoint), Google Workspace, QuickBooks, Salesforce, and general office software.",
+    "Personal Development": "Time management, career growth, leadership, public speaking, self-esteem, memory skills, and personal finance.",
+    "Photography & Video": "Digital photography, video editing (Premiere, DaVinci), lighting, portraiture, and camera equipment fundamentals.",
+    "Teaching & Academics": "Language learning, science, math, humanities, teacher training, and academic exam preparation."
 }
 
 

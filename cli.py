@@ -729,7 +729,8 @@ if __name__ == "__main__":
         while not login_successful:
             try:
                 login_method = ""
-                if udemy.settings["use_browser_cookies"]:
+                cookies_exist = os.path.exists(get_user_data_path("cookies.json")) or os.path.exists(get_user_data_path("udemy-cookies.json"))
+                if udemy.settings["use_browser_cookies"] or cookies_exist:
                     login_method = "Browser Cookies"
                     if INTERACTIVE:
                         with console.status(
