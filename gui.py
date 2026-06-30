@@ -1040,6 +1040,62 @@ class DashboardPage(ctk.CTkFrame):
         self.course_url_box.configure(state="disabled")
 
 
+class ToolTip:
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.tip_window = None
+        self.widget.bind("<Enter>", self.show_tip)
+        self.widget.bind("<Leave>", self.hide_tip)
+
+    def show_tip(self, event=None):
+        if self.tip_window or not self.text:
+            return
+        x = self.widget.winfo_rootx() + 25
+        y = self.widget.winfo_rooty() + 20
+        self.tip_window = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(1)
+        tw.wm_geometry(f"+{x}+{y}")
+        
+        frame = tk.Frame(tw, background="#3A3A3C", bd=1)
+        frame.pack()
+        
+        label = tk.Label(
+            frame,
+            text=self.text,
+            justify="left",
+            background="#1C1C1E",
+            foreground="#E1E1E6",
+            font=("Segoe UI", 9),
+            padx=8,
+            pady=4
+        )
+        label.pack()
+
+    def hide_tip(self, event=None):
+        tw = self.tip_window
+        self.tip_window = None
+        if tw:
+            tw.destroy()
+
+
+CATEGORY_DESCRIPTIONS = {
+    "Business": "Entrepreneurship, management, strategy, sales, and business communications.",
+    "Design": "Graphic design, web design, UI/UX, drawing, and 3D modeling/animation.",
+    "Development": "Software engineering, web development, coding languages, and databases.",
+    "Finance & Accounting": "Investing, accounting, bookkeeping, taxes, and personal finance.",
+    "Health & Fitness": "Nutrition, exercise/workout, yoga, mental health, and self-defense.",
+    "IT & Software": "Operating systems, networking, cyber security, hardware, and system admin.",
+    "Lifestyle": "Gaming, cooking/baking, crafts, home improvement, and pet training.",
+    "Marketing": "Digital marketing, SEO, social media, branding, and copywriting.",
+    "Music": "Learning instruments, music theory, vocals, and audio production software.",
+    "Office Productivity": "Microsoft Office (Excel/Word), Google Workspace, and task management.",
+    "Personal Development": "Productivity, leadership, self-esteem, public speaking, and soft skills.",
+    "Photography & Video": "Photography basics, video editing, lighting, and camera gear.",
+    "Teaching & Academics": "Academic subjects (Math, Science, History), exam prep, and research."
+}
+
+
 class SettingsPage(ctk.CTkFrame):
     """Page component displaying grids of checkbox filters (Websites, Languages, Categories)."""
 
@@ -1269,6 +1325,11 @@ class SettingsPage(ctk.CTkFrame):
             cb.grid(row=(idx // 3) + 1, column=idx %
                     3, padx=15, pady=8, sticky="w")
             self.cat_vars[cat] = var
+            
+            # Bind Tooltip for non-technical users
+            desc = CATEGORY_DESCRIPTIONS.get(cat)
+            if desc:
+                ToolTip(cb, desc)
 
     def select_all_sites(self):
         for var in self.site_vars.values():

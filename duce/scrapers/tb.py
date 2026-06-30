@@ -22,6 +22,11 @@ def scrape_tb(scraper):
             ):
                 try:
                     result = future.result()
+                    if result is not None and result.status_code == 403 and ("account suspensed" in result.text.lower() or "access denied" in result.text.lower()):
+                        logger.warning(
+                            "Tutorial Bar website hosting account is suspended or blocked by its provider (Hostinger). Skipping Tutorial Bar.")
+                        scraper.set_attr(code_name, "progress", i + 1)
+                        continue
                     if result is None or result.status_code != 200:
                         status = "failed" if result is None else f"status {result.status_code}"
                         logger.warning(
