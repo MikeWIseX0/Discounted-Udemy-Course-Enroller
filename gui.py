@@ -282,10 +282,10 @@ class CookieInstructionsDialog(ctk.CTkToplevel):
         )
         steps_box.grid(row=4, column=0, padx=20, pady=(0, 15), sticky="nsew")
 
-        # Define tags for formatting
-        steps_box.tag_config("bold", font=("Segoe UI", 11, "bold"), foreground="#FFFFFF")
-        steps_box.tag_config("highlight", font=("Segoe UI", 11, "bold"), foreground="#00F2FE")
-        steps_box.tag_config("normal", font=("Segoe UI", 11), foreground="#E1E1E6")
+        # Define tags for formatting via the underlying Tkinter text widget
+        steps_box._textbox.tag_config("bold", font=("Segoe UI", 11, "bold"), foreground="#FFFFFF")
+        steps_box._textbox.tag_config("highlight", font=("Segoe UI", 11, "bold"), foreground="#00F2FE")
+        steps_box._textbox.tag_config("normal", font=("Segoe UI", 11), foreground="#E1E1E6")
 
         segments = [
             ("Step 1: ", "bold"),
