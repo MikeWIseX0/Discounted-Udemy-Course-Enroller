@@ -1522,15 +1522,15 @@ class ExclusionsPage(ctk.CTkFrame):
 
     def update_rating_label(self, val):
         self.rating_label_var.set(
-            f"Minimum Course Rating: {float(val):.1f} / 5.0")
+            f"Min Rating: {float(val):.1f} / 5.0")
 
     def update_threshold_label(self, val):
         self.threshold_label_var.set(
-            f"Course Last Updated Limit: {int(float(val))} Month(s)")
+            f"Max Age: {int(float(val))} Month(s)")
 
     def update_timeout_label(self, val):
         self.timeout_label_var.set(
-            f"Network Timeout: {int(float(val))} Second(s)")
+            f"Timeout: {int(float(val))}s")
 
 
 class AboutPage(ctk.CTkFrame):
