@@ -806,12 +806,12 @@ if __name__ == "__main__":
                                 f"Failed to create cookies.json template: {file_err}")
 
                     console.print(
-                        f"[bold yellow]Automatic browser cookie extraction is deprecated and no longer supported due to browser security limitations (e.g. App-Bound Encryption).[/bold yellow]\n")
+                        f"[bold yellow]Automatic browser cookie extraction is deprecated due to modern browser security restrictions (e.g. App-Bound Encryption).[/bold yellow]\n")
                     console.print(
-                        "[bold cyan]How to import cookies in CLI mode:[/bold cyan]\n\n"
-                        "1. Export your Udemy cookies in JSON format from your browser using an extension like 'Cookie-Editor'.\n\n"
-                        "2. Copy the exported cookies to your clipboard and retry (the app will automatically detect and import them from your clipboard).\n\n"
-                        "3. Alternatively, paste the copied JSON cookies directly into the file:\n"
+                        "[bold cyan]How to import cookies manually:[/bold cyan]\n\n"
+                        "1. Export cookies in JSON format from your browser using the 'Cookie-Editor' extension.\n\n"
+                        "2. Copy them to your clipboard and choose 'Retry' (copied cookies are auto-detected).\n\n"
+                        "3. Or paste them directly into the file:\n"
                         f"   [cyan]{cookies_path}[/cyan]\n"
                     )
 

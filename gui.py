@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 import customtkinter as ctk
 import tkinter as tk
 import queue
@@ -216,15 +217,15 @@ class CookieInstructionsDialog(ctk.CTkToplevel):
     def __init__(self, parent, cookies_path):
         super().__init__(parent)
         self.title("Cookie Import Instructions")
-        self.geometry("600x480")
+        self.geometry("640x530")
         self.resizable(False, False)
         self.transient(parent)
         self.grab_set()
 
         # Center the dialog
         self.update_idletasks()
-        width = 600
-        height = 480
+        width = 640
+        height = 530
         x = (self.winfo_screenwidth() // 2) - (width // 2)
         y = (self.winfo_screenheight() // 2) - (height // 2)
         self.geometry(f"+{x}+{y}")
@@ -244,7 +245,7 @@ class CookieInstructionsDialog(ctk.CTkToplevel):
 
         desc_lbl = ctk.CTkLabel(
             self.frame,
-            text="Automatic browser cookie extraction is deprecated due to modern browser security restrictions.\n\nFollow the easy steps below to log in using cookies:",
+            text="Automatic browser cookie extraction is deprecated due to modern browser security restrictions.\nFollow the easy steps below to log in using cookies:",
             font=("Segoe UI", 11),
             text_color="#E1E1E6",
             justify="left"
@@ -281,12 +282,12 @@ class CookieInstructionsDialog(ctk.CTkToplevel):
         steps_box.grid(row=4, column=0, padx=20, pady=(0, 15), sticky="nsew")
 
         steps_text = (
-            "Step 1: Install the 'Cookie-Editor' extension in Chrome, Edge, Brave, or Firefox.\n\n\n"
-            "Step 2: Log in to your Udemy account on www.udemy.com in your web browser.\n\n\n"
-            "Step 3: Click the Cookie-Editor extension icon in your browser, click 'Export' (select 'JSON' if asked), which automatically copies your cookies to your clipboard!\n\n\n"
-            "Step 4: Now just click 'Extract & Auto Login' in this app. The app automatically detects your copied cookies from the clipboard, imports them, and logs you in!\n\n\n"
+            "Step 1: Install the 'Cookie-Editor' extension in Chrome, Firefox, Edge, or Brave.\n\n\n"
+            "Step 2: Log in to your Udemy account in your browser.\n\n\n"
+            "Step 3: Click the Cookie-Editor extension icon, then click 'Export' (select 'JSON') to copy cookies to clipboard.\n\n\n"
+            "Step 4: Click 'Extract & Auto Login' in this app to automatically import from clipboard and log in!\n\n\n"
             "Alternative Option:\n\n"
-            "If clipboard import doesn't work, click the 'Open cookies.json' button below. Delete any existing text inside, paste your copied cookies, save & close the file, and then try 'Extract & Auto Login' again."
+            "If clipboard auto-detection fails, click 'Open cookies.json' below, paste your copied cookies JSON into it, save/close, and try again."
         )
         steps_box.insert("1.0", steps_text)
         steps_box.configure(state="disabled")

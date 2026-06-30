@@ -457,11 +457,11 @@ def fetch_cookies(on_locked=None, on_select=None) -> tuple[dict, RequestsCookieJ
     # 3. Dynamic Browser Profile Scan (Deprecated)
     logger.warning("Automatic browser cookie extraction is deprecated.")
     raise LoginException(
-        "Automatic browser cookie extraction is deprecated and no longer supported due to browser security limitations (e.g. App-Bound Encryption).\n\n"
+        "Automatic browser cookie extraction is deprecated due to modern browser security restrictions (e.g. App-Bound Encryption).\n\n"
         "Please import your cookies manually:\n\n"
-        "1. Export your Udemy cookies in JSON format (using the Cookie-Editor extension).\n\n"
-        "2. Copy the JSON to your clipboard and click 'Extract & Auto Login' again (the app will automatically detect them).\n\n"
-        "3. Or, save the cookies text into the 'cookies.json' file in the application folder."
+        "1. Export cookies in JSON format using the 'Cookie-Editor' extension.\n\n"
+        "2. Copy them to your clipboard and click 'Extract & Auto Login' (auto-detected from clipboard).\n\n"
+        "3. Or paste them directly into the 'cookies.json' file in the application folder."
     )
 
     selected_idx = 0
