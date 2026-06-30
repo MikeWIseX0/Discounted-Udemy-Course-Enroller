@@ -157,4 +157,4 @@ If you find DUCE helpful, feel free to support the developer:
 - **Bitcoin (BTC)**: `bc1qdyjwj0eqxjk5hxejah4gyclrumwtqs3hqp63uz`
 - **Bitcoin (BTC Legacy)**: `14JNjiNoiKcbCHcxcqUxgJcVgyDfhGbxQF`
 
-<p align="center">Made with care for the open-source community</p>
+<p align="center">Made with ❤️ for the open-source community</p>
