@@ -37,7 +37,7 @@ scraper_dict: dict = {
 }
 
 LINKS = {
-    "github": "https://github.com/techtanic/Discounted-Udemy-Course-Enroller",
+    "github": "https://github.com/MikeWIseX0/Discounted-Udemy-Course-Enroller",
     "support": "https://techtanic.github.io/duce/support",
     "discord": "https://discord.gg/wFsfhJh4Rh",
 }

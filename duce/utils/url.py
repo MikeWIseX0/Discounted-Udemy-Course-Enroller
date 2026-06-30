@@ -30,12 +30,23 @@ def cleanup_link(link: str) -> str:
 
         # trk.udemy.com affiliate redirect
         if domain == "trk.udemy.com":
+            # If it's a short URL path (e.g., /zzRbN0) with no query parameters, it is resolved dynamically by the enroller
+            if not parsed_url.query and parsed_url.path and parsed_url.path.strip("/"):
+                return link
+
             query_params = parse_qs(parsed_url.query)
             if "u" in query_params:
                 return cleanup_link(unquote(query_params["u"][0]))
-            else:
-                logger.warning(f"Unknown trk.udemy.com format: {link}")
-                return link
+            elif "url" in query_params:
+                return cleanup_link(unquote(query_params["url"][0]))
+            
+            # Check other query parameters for any embedded udemy link
+            for val_list in query_params.values():
+                for val in val_list:
+                    if "udemy.com" in val:
+                        return cleanup_link(unquote(val))
+            logger.warning(f"Unknown trk.udemy.com format: {link}")
+            return link
 
         # Generic redirect extraction (recursively check all query parameter values for udemy.com)
         query_params = parse_qs(parsed_url.query)

@@ -147,8 +147,8 @@ class ProfileSelectionDialog(ctk.CTkToplevel):
 
         # Center the dialog
         self.update_idletasks()
-        width = self.winfo_width()
-        height = self.winfo_height()
+        width = 450
+        height = 220
         x = (self.winfo_screenwidth() // 2) - (width // 2)
         y = (self.winfo_screenheight() // 2) - (height // 2)
         self.geometry(f"+{x}+{y}")
@@ -223,8 +223,8 @@ class CookieInstructionsDialog(ctk.CTkToplevel):
 
         # Center the dialog
         self.update_idletasks()
-        width = self.winfo_width()
-        height = self.winfo_height()
+        width = 600
+        height = 480
         x = (self.winfo_screenwidth() // 2) - (width // 2)
         y = (self.winfo_screenheight() // 2) - (height // 2)
         self.geometry(f"+{x}+{y}")
@@ -236,7 +236,7 @@ class CookieInstructionsDialog(ctk.CTkToplevel):
 
         title_lbl = ctk.CTkLabel(
             self.frame,
-            text="Udemy Cookie Import Fallback",
+            text="Udemy Cookie Import Instructions",
             font=("Segoe UI", 16, "bold"),
             text_color="#00F2FE"
         )
@@ -244,9 +244,10 @@ class CookieInstructionsDialog(ctk.CTkToplevel):
 
         desc_lbl = ctk.CTkLabel(
             self.frame,
-            text="Automatic cookie extraction failed. A template file has been created at:",
+            text="Automatic browser cookie extraction is deprecated due to modern browser security restrictions.\nFollow the easy steps below to log in using cookies:",
             font=("Segoe UI", 11),
-            text_color="#E1E1E6"
+            text_color="#E1E1E6",
+            justify="left"
         )
         desc_lbl.grid(row=1, column=0, padx=15, pady=5)
 
@@ -280,11 +281,12 @@ class CookieInstructionsDialog(ctk.CTkToplevel):
         steps_box.grid(row=4, column=0, padx=20, pady=(0, 15), sticky="nsew")
 
         steps_text = (
-            "1. Install a browser extension like 'Cookie-Editor' or 'EditThisCookie'.\n\n"
-            "2. Open the extension while visiting www.udemy.com, and export/copy your cookies in JSON format.\n\n"
-            "3. Open the generated 'cookies.json' file using the button below.\n\n"
-            "4. Delete the template text, paste your exported JSON cookies, and save the file.\n\n"
-            "5. Close the file and click 'Auto Login' again in this app."
+            "Step 1: Install the 'Cookie-Editor' extension in Chrome, Edge, Brave, or Firefox.\n\n"
+            "Step 2: Log in to your Udemy account on www.udemy.com in your web browser.\n\n"
+            "Step 3: Click the Cookie-Editor extension icon in your browser, click 'Export' (select 'JSON' if asked), which automatically copies your cookies to your clipboard!\n\n"
+            "Step 4: Now just click 'Extract & Auto Login' in this app. The app automatically detects your copied cookies from the clipboard, imports them, and logs you in!\n\n"
+            "Alternative Option:\n"
+            "If clipboard import doesn't work, click the 'Open cookies.json' button below. Delete any existing text inside, paste your copied cookies, save & close the file, and then try 'Extract & Auto Login' again."
         )
         steps_box.insert("1.0", steps_text)
         steps_box.configure(state="disabled")
@@ -353,8 +355,8 @@ class ErrorPopupDialog(ctk.CTkToplevel):
 
         # Center the popup
         self.update_idletasks()
-        width = self.winfo_width()
-        height = self.winfo_height()
+        width = 520
+        height = 360
         x = (self.winfo_screenwidth() // 2) - (width // 2)
         y = (self.winfo_screenheight() // 2) - (height // 2)
         self.geometry(f"+{x}+{y}")
@@ -781,6 +783,16 @@ class DashboardPage(ctk.CTkFrame):
             row=2, column=0, padx=15, pady=(2, 8), sticky="ew")
         self.course_url_box.configure(state="disabled")
 
+        self.course_status_lbl = ctk.CTkLabel(
+            self.course_card,
+            text="",
+            font=("Segoe UI", 11, "bold"),
+            text_color="#00F2FE",
+            anchor="w"
+        )
+        self.course_status_lbl.grid(
+            row=3, column=0, padx=15, pady=(2, 10), sticky="w")
+
         # Logs Textbox Card
         self.logs_card = ctk.CTkFrame(
             self.run_frame, fg_color="#252528", corner_radius=8)
@@ -948,6 +960,9 @@ class DashboardPage(ctk.CTkFrame):
     def update_course_title(self, text):
         self.course_title_lbl.configure(text=text)
 
+    def update_course_status(self, text, color="#00F2FE"):
+        self.course_status_lbl.configure(text=text, text_color=color)
+
     def update_course_url(self, text):
         self.course_url_box.configure(state="normal")
         self.course_url_box.delete("1.0", "end")
@@ -984,6 +999,7 @@ class DashboardPage(ctk.CTkFrame):
             self.stat_labels[key].configure(text="0")
         self.progress_lbl_var.set("Current Course")
         self.course_title_lbl.configure(text="")
+        self.course_status_lbl.configure(text="")
 
         self.course_url_box.configure(state="normal")
         self.course_url_box.delete("1.0", "end")
@@ -1350,7 +1366,7 @@ class ExclusionsPage(ctk.CTkFrame):
             self.scroll_frame, fg_color="#252528", corner_radius=8)
         self.slider_frame.grid(row=1, column=0, columnspan=2,
                                padx=15, pady=15, sticky="ew")
-        self.slider_frame.grid_columnconfigure((0, 1), weight=1)
+        self.slider_frame.grid_columnconfigure((0, 1, 2), weight=1)
 
         # Rating Slider
         self.rating_label_var = tk.StringVar()
@@ -1412,6 +1428,37 @@ class ExclusionsPage(ctk.CTkFrame):
             "course_update_threshold_months", 24))
         self.threshold_slider.grid(
             row=1, column=1, padx=15, pady=(0, 15), sticky="ew")
+
+        # Network Timeout Slider
+        self.timeout_label_var = tk.StringVar()
+        self.update_timeout_label(self.app.udemy.settings.get(
+            "network_timeout", 60))
+
+        timeout_title = ctk.CTkLabel(
+            self.slider_frame,
+            textvariable=self.timeout_label_var,
+            font=("Segoe UI", 13, "bold"),
+            text_color="#FFFFFF",
+            anchor="w"
+        )
+        timeout_title.grid(row=0, column=2, padx=15,
+                             pady=(12, 2), sticky="w")
+
+        self.timeout_slider = ctk.CTkSlider(
+            self.slider_frame,
+            from_=5,
+            to=180,
+            number_of_steps=35,
+            fg_color="#2C2C2E",
+            progress_color="#2ECC71",
+            button_color="#2ECC71",
+            button_hover_color="#27AE60",
+            command=self.update_timeout_label
+        )
+        self.timeout_slider.set(self.app.udemy.settings.get(
+            "network_timeout", 60))
+        self.timeout_slider.grid(
+            row=1, column=2, padx=15, pady=(0, 15), sticky="ew")
 
         # Options Frame
         self.options_frame = ctk.CTkFrame(
@@ -1480,6 +1527,10 @@ class ExclusionsPage(ctk.CTkFrame):
     def update_threshold_label(self, val):
         self.threshold_label_var.set(
             f"Course Last Updated Limit: {int(float(val))} Month(s)")
+
+    def update_timeout_label(self, val):
+        self.timeout_label_var.set(
+            f"Network Timeout: {int(float(val))} Second(s)")
 
 
 class AboutPage(ctk.CTkFrame):
@@ -1802,8 +1853,8 @@ class App(ctk.CTk):
 
         # Center Window
         self.update_idletasks()
-        width = self.winfo_width()
-        height = self.winfo_height()
+        width = 980
+        height = 680
         x = (self.winfo_screenwidth() // 2) - (width // 2)
         y = (self.winfo_screenheight() // 2) - (height // 2)
         self.geometry(f"+{x}+{y}")
@@ -2235,6 +2286,10 @@ class App(ctk.CTk):
         elif key == "current_course_title":
             val = kwargs.get("value", args[0] if args else "")
             self.main_frame.dashboard_page.update_course_title(val)
+        elif key == "current_course_status":
+            val = kwargs.get("value", args[0] if args else "")
+            color = kwargs.get("color", "#00F2FE")
+            self.main_frame.dashboard_page.update_course_status(val, color)
         elif key == "current_course_url":
             val = kwargs.get("value", args[0] if args else "")
             self.main_frame.dashboard_page.update_course_url(val)
@@ -2269,6 +2324,8 @@ class App(ctk.CTk):
         values["min_rating"] = self.main_frame.exclusions_page.min_rating_slider.get()
         values["course_update_threshold_months"] = int(
             self.main_frame.exclusions_page.threshold_slider.get())
+        values["network_timeout"] = int(
+            self.main_frame.exclusions_page.timeout_slider.get())
         values["save_txt"] = self.main_frame.exclusions_page.save_txt_var.get()
         values["discounted_only"] = self.main_frame.exclusions_page.discounted_only_var.get()
         values["allow_insecure_ssl_fallback"] = self.main_frame.exclusions_page.allow_ssl_fallback_var.get()
@@ -2296,6 +2353,7 @@ class App(ctk.CTk):
         self.udemy.settings["course_update_threshold_months"] = int(
             values["course_update_threshold_months"]
         )
+        self.udemy.settings["network_timeout"] = int(values["network_timeout"])
         self.udemy.settings["save_txt"] = values["save_txt"]
         self.udemy.settings["discounted_only"] = values["discounted_only"]
         self.udemy.settings["allow_insecure_ssl_fallback"] = values["allow_insecure_ssl_fallback"]
@@ -2452,6 +2510,9 @@ def scrape():
             if hasattr(udemy, "course") and udemy.course:
                 safe_update("current_course_title", value=udemy.course.title)
                 safe_update("current_course_url", value=udemy.course.url)
+                status_text = getattr(udemy.course, "status_text", "")
+                status_color = getattr(udemy.course, "status_color", "#00F2FE")
+                safe_update("current_course_status", value=status_text, color=status_color)
 
             if hasattr(udemy, "total_courses_processed"):
                 progress_text = (

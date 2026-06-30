@@ -41,59 +41,119 @@ class SystemCertHTTPAdapter(HTTPAdapter):
 
 class RobustRequestsSession(requests.Session):
     """requests Session that automatically retries with verify=False on SSL/TLS verification errors."""
+    network_timeout = 60
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.allow_insecure_fallback = True
 
     def request(self, method, url, *args, **kwargs):
-        try:
-            return super().request(method, url, *args, **kwargs)
-        except Exception as e:
-            if not getattr(self, "allow_insecure_fallback", True):
-                raise e
-            err_str = str(e).lower()
-            if "ssl" in err_str or "cert" in err_str or "verify" in err_str or "unable to get local issuer certificate" in err_str:
-                logger.warning(
-                    f"SSL/TLS error occurred in requests session for {url}: {e}. Retrying with verify=False...")
-                kwargs["verify"] = False
-                try:
-                    return super().request(method, url, *args, **kwargs)
-                except Exception as inner_e:
-                    logger.error(f"Requests fallback to verify=False failed: {inner_e}")
-                    raise inner_e
+        # Adjust timeout based on network_timeout config
+        timeout = kwargs.get("timeout")
+        net_timeout = getattr(self, "network_timeout", 60)
+        if timeout is None:
+            kwargs["timeout"] = net_timeout
+        else:
+            if isinstance(timeout, tuple):
+                conn_timeout, read_timeout = timeout
+                new_conn = max(conn_timeout, net_timeout) if conn_timeout is not None else net_timeout
+                new_read = max(read_timeout, net_timeout) if read_timeout is not None else net_timeout
+                kwargs["timeout"] = (new_conn, new_read)
             else:
-                raise e
+                kwargs["timeout"] = max(timeout, net_timeout)
+
+        max_retries = 3
+        backoff = 2
+        for attempt in range(max_retries):
+            try:
+                return super().request(method, url, *args, **kwargs)
+            except Exception as e:
+                err_str = str(e).lower()
+                is_timeout = any(t in err_str for t in ["timeout", "timed out", "curl: (28)", "(28)", "time-out"])
+                is_conn = any(c in err_str for c in ["connection", "host", "dns", "temporary failure", "refused", "reset"])
+
+                if (is_timeout or is_conn) and attempt < max_retries - 1:
+                    logger.warning(
+                        f"Network timeout/connection error (attempt {attempt + 1}/{max_retries}) for {url}: {e}. Retrying in {backoff}s...")
+                    time.sleep(backoff)
+                    backoff *= 2
+                    continue
+
+                if not getattr(self, "allow_insecure_fallback", True):
+                    raise e
+                if "ssl" in err_str or "cert" in err_str or "verify" in err_str or "unable to get local issuer certificate" in err_str:
+                    logger.warning(
+                        f"SSL/TLS error occurred in requests session for {url}: {e}. Retrying with verify=False...")
+                    kwargs["verify"] = False
+                    try:
+                        return super().request(method, url, *args, **kwargs)
+                    except Exception as inner_e:
+                        logger.error(f"Requests fallback to verify=False failed: {inner_e}")
+                        raise inner_e
+                else:
+                    raise e
 
 
 if use_cffi:
     class RobustCffiSession(cffi_requests.Session):
         """curl_cffi Session that automatically retries with verify=False on SSL/TLS verification errors."""
+        network_timeout = 60
+
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.allow_insecure_fallback = True
             self._impersonate = kwargs.get("impersonate", "chrome")
 
         def request(self, method, url, *args, **kwargs):
-            try:
-                return super().request(method, url, *args, **kwargs)
-            except Exception as e:
-                if not getattr(self, "allow_insecure_fallback", True):
-                    raise e
-                err_str = str(e).lower()
-                if "ssl" in err_str or "cert" in err_str or "verify" in err_str or "unable to get local issuer certificate" in err_str:
-                    logger.warning(
-                        f"SSL/TLS error occurred in curl_cffi session for {url}: {e}. Retrying with verify=False...")
-                    kwargs["verify"] = False
-                    try:
-                        # Use a fresh one-off session for the insecure retry,
-                        # as curl_cffi may cache SSL settings per-session.
-                        with cffi_requests.Session(impersonate=self._impersonate) as temp_session:
-                            return temp_session.request(method, url, *args, **kwargs)
-                    except Exception as inner_e:
-                        logger.error(f"curl_cffi fallback to verify=False failed: {inner_e}")
-                        raise inner_e
+            # Adjust timeout based on network_timeout config
+            timeout = kwargs.get("timeout")
+            net_timeout = getattr(self, "network_timeout", 60)
+            if timeout is None:
+                kwargs["timeout"] = net_timeout
+            else:
+                if isinstance(timeout, tuple):
+                    conn_timeout, read_timeout = timeout
+                    new_conn = max(conn_timeout, net_timeout) if conn_timeout is not None else net_timeout
+                    new_read = max(read_timeout, net_timeout) if read_timeout is not None else net_timeout
+                    kwargs["timeout"] = (new_conn, new_read)
                 else:
-                    raise e
+                    kwargs["timeout"] = max(timeout, net_timeout)
+
+            max_retries = 3
+            backoff = 2
+            for attempt in range(max_retries):
+                try:
+                    return super().request(method, url, *args, **kwargs)
+                except Exception as e:
+                    err_str = str(e).lower()
+                    is_timeout = any(t in err_str for t in ["timeout", "timed out", "curl: (28)", "(28)", "time-out"])
+                    is_conn = any(c in err_str for c in ["connection", "host", "dns", "temporary failure", "refused", "reset"])
+
+                    if (is_timeout or is_conn) and attempt < max_retries - 1:
+                        logger.warning(
+                            f"Network timeout/connection error (attempt {attempt + 1}/{max_retries}) for {url}: {e}. Retrying in {backoff}s...")
+                        time.sleep(backoff)
+                        backoff *= 2
+                        continue
+
+                    if not getattr(self, "allow_insecure_fallback", True):
+                        raise e
+                    if "ssl" in err_str or "cert" in err_str or "verify" in err_str or "unable to get local issuer certificate" in err_str:
+                        logger.warning(
+                            f"SSL/TLS error occurred in curl_cffi session for {url}: {e}. Retrying with verify=False...")
+                        kwargs["verify"] = False
+                        try:
+                            # Use a fresh one-off session for the insecure retry,
+                            # as curl_cffi may cache SSL settings per-session.
+                            with cffi_requests.Session(impersonate=self._impersonate) as temp_session:
+                                if hasattr(temp_session, "network_timeout"):
+                                    temp_session.network_timeout = net_timeout
+                                return temp_session.request(method, url, *args, **kwargs)
+                        except Exception as inner_e:
+                            logger.error(f"curl_cffi fallback to verify=False failed: {inner_e}")
+                            raise inner_e
+                    else:
+                        raise e
 
     session = RobustCffiSession(impersonate="chrome")
 else:

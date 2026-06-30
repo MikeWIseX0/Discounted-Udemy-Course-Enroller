@@ -47,6 +47,37 @@ def verify_dependencies():
 
 verify_dependencies()
 
+
+def center_console_window():
+    try:
+        import ctypes
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+        if hwnd:
+            class RECT(ctypes.Structure):
+                _fields_ = [
+                    ("left", ctypes.c_long),
+                    ("top", ctypes.c_long),
+                    ("right", ctypes.c_long),
+                    ("bottom", ctypes.c_long)
+                ]
+            rect = RECT()
+            ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect))
+            width = rect.right - rect.left
+            height = rect.bottom - rect.top
+            
+            screen_width = ctypes.windll.user32.GetSystemMetrics(0)
+            screen_height = ctypes.windll.user32.GetSystemMetrics(1)
+            
+            x = (screen_width // 2) - (width // 2)
+            y = (screen_height // 2) - (height // 2)
+            
+            ctypes.windll.user32.SetWindowPos(hwnd, 0, x, y, 0, 0, 0x0001)
+    except Exception:
+        pass
+
+
+center_console_window()
+
 console = Console()
 udemy = None
 scraper = None
@@ -775,9 +806,14 @@ if __name__ == "__main__":
                                 f"Failed to create cookies.json template: {file_err}")
 
                     console.print(
-                        f"[bold yellow]Automatic cookie extraction failed. A template cookies.json file has been created at:[/bold yellow]\n[cyan]{cookies_path}[/cyan]")
+                        f"[bold yellow]Automatic browser cookie extraction is deprecated and no longer supported due to browser security limitations (e.g. App-Bound Encryption).[/bold yellow]\n")
                     console.print(
-                        "[bold yellow]To log in with cookies, please export your Udemy cookies in JSON format (e.g. using Cookie-Editor extension) and paste them in this file.[/bold yellow]\n")
+                        "[bold cyan]How to import cookies in CLI mode:[/bold cyan]\n"
+                        "1. Export your Udemy cookies in JSON format from your browser using an extension like 'Cookie-Editor'.\n"
+                        "2. Copy the exported cookies to your clipboard and retry (the app will automatically detect and import them from your clipboard).\n"
+                        "3. Alternatively, paste the copied JSON cookies directly into the file:\n"
+                        f"   [cyan]{cookies_path}[/cyan]\n"
+                    )
 
                     console.print("[cyan]Choose an option to continue:[/cyan]")
                     console.print(

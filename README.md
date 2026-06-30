@@ -1,16 +1,16 @@
 <p align="center">
-    <img src="https://raw.githubusercontent.com/techtanic/Discounted-Udemy-Course-Enroller/refs/heads/master/extra/promo.gif" alt="DUCE Promotion" width="600">
+    <img src="https://raw.githubusercontent.com/MikeWIseX0/Discounted-Udemy-Course-Enroller/refs/heads/master/extra/promo.gif" alt="DUCE Promotion" width="600">
     <br/>
     <img src="https://forthebadge.com/images/badges/made-with-python.svg" alt="Made with Python">
     <br/>
-    <a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/graphs/commit-activity">
+    <a href="https://github.com/MikeWIseX0/Discounted-Udemy-Course-Enroller/graphs/commit-activity">
         <img alt="Maintenance" src="https://img.shields.io/badge/Maintained%3F-yes-green.svg?style=for-the-badge">
     </a>
     <a target="_blank" href="https://discord.gg/wFsfhJh4Rh">
         <img alt="Discord" src="https://img.shields.io/discord/703266580846346361.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge">
     </a>
     <br/>
-    <a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller">
+    <a href="https://github.com/MikeWIseX0/Discounted-Udemy-Course-Enroller">
         <img src="https://cdn.discordapp.com/attachments/823472016999972884/841661124410736710/standard_13.gif" alt="Stats">
     </a>
 </p>
@@ -42,18 +42,24 @@ Everything you need can be found on our documentation website: **https://techtan
   <tr align="center">
     <th>GUI Version (Windows)</th>
     <th>CLI Version (Windows)</th>
+    <th>Release Details</th>
   </tr>
 </thead>
 <tbody>
   <tr align="center">
     <td>
-      <a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/latest/download/DUCE-GUI-windows.exe">
+      <a href="https://github.com/MikeWIseX0/Discounted-Udemy-Course-Enroller/releases/download/v3.0.0/DUCE-GUI-windows.exe">
          <img alt="GUI Windows exe" src="https://img.shields.io/static/v1?message=Download&logo=windows&labelColor=5c5c5c&color=1182c3&label=%20&style=for-the-badge">
       </a>
     </td>
     <td>
-      <a href="https://github.com/techtanic/Discounted-Udemy-Course-Enroller/releases/latest/download/DUCE-CLI-windows.exe">
+      <a href="https://github.com/MikeWIseX0/Discounted-Udemy-Course-Enroller/releases/download/v3.0.0/DUCE-CLI-windows.exe">
          <img alt="CLI Windows exe" src="https://img.shields.io/static/v1?message=Download&logo=windows&labelColor=5c5c5c&color=1182c3&label=%20&style=for-the-badge">
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/MikeWIseX0/Discounted-Udemy-Course-Enroller/releases/tag/v3.0.0">
+         <img alt="Release Info" src="https://img.shields.io/static/v1?message=v3.0.0&logo=github&labelColor=5c5c5c&color=28a745&label=Release&style=for-the-badge">
       </a>
     </td>
   </tr>
@@ -73,7 +79,7 @@ If you prefer to run DUCE directly from Python, follow these setup instructions:
 ### Installation
 1. Clone this repository:
    ```bash
-   git clone https://github.com/techtanic/Discounted-Udemy-Course-Enroller.git
+   git clone https://github.com/MikeWIseX0/Discounted-Udemy-Course-Enroller.git
    cd Discounted-Udemy-Course-Enroller
    ```
 2. Create and activate a virtual environment:
@@ -110,14 +116,16 @@ python -m unittest discover -s tests -v
 
 ---
 
-## Cookie Extraction and App-Bound Encryption
-Starting with Chromium v120+, session cookies on Windows may be locked under **App-Bound Encryption (v20)** which blocks external scripts from decrypting local cookie stores. 
+## Cookie Extraction & Login
 
-If DUCE displays a warning regarding App-Bound protection:
-1. Install a cookie exporter extension (such as **Cookie-Editor** or **EditThisCookie**) on your browser.
-2. Navigate to [Udemy](https://www.udemy.com/) and make sure you are logged in.
-3. Open the extension, click **Export** (JSON format), and copy it to your clipboard.
-4. Click **Extract & Auto Login** in DUCE, and it will immediately detect and load the cookies from your clipboard!
+Automatic browser cookie extraction is deprecated and no longer supported due to browser security restrictions (such as App-Bound Encryption on Chromium v120+). 
+
+To log in using cookies:
+1. Install a cookie exporter extension (such as **Cookie-Editor**) on your browser.
+2. Log in to [Udemy](https://www.udemy.com/) in your web browser.
+3. Click the **Cookie-Editor** extension icon, click **Export** (JSON format), which automatically copies your cookies to your clipboard.
+4. Click **Extract & Auto Login** in the DUCE app. It will automatically detect your clipboard cookies, import them, and log you in!
+5. (Optional) Alternatively, you can paste the copied JSON cookies directly into the `cookies.json` file in the application directory.
 
 ---
 

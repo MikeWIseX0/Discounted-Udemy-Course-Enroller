@@ -454,92 +454,15 @@ def fetch_cookies(on_locked=None, on_select=None) -> tuple[dict, RequestsCookieJ
                     logger.warning(
                         f"{filename} was loaded but missing access_token/client_id")
 
-    # 3. Dynamic Browser Profile Scan
-    logger.info("Fetching cookies from browser")
-    candidates = find_browser_cookie_paths()
-    if not candidates:
-        raise LoginException(
-            "Could not find any browser profiles or cookie databases on this machine. "
-            "Please log in to Udemy in Chrome, Edge, Brave, Firefox, Opera, or Vivaldi first."
-        )
-
-    successful_profiles = []
-    locked_candidates = []
-    v20_candidates = []
-
-    def process_candidates(cand_list):
-        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
-            futures = {executor.submit(
-                extract_cookies_from_candidate, c): c for c in cand_list}
-            for f in concurrent.futures.as_completed(futures):
-                c = futures[f]
-                try:
-                    res = f.result()
-                    if res:
-                        cookie_dict, temp_cj, is_v20 = res
-                        if cookie_dict:
-                            successful_profiles.append(
-                                (c, cookie_dict, temp_cj))
-                        elif is_v20:
-                            v20_candidates.append(c)
-                except PermissionError:
-                    locked_candidates.append(c)
-                except Exception as e:
-                    logger.debug(
-                        f"Task exception for {c['browser']} - {c['profile']}: {e}")
-
-    process_candidates(candidates)
-
-    if locked_candidates:
-        grouped_locked = {}
-        for c in locked_candidates:
-            grouped_locked.setdefault(c["browser"], []).extend(c["processes"])
-
-        retry_candidates = []
-        for browser_name, processes in grouped_locked.items():
-            processes = list(set(processes))
-            choice = False
-            if on_locked:
-                try:
-                    choice = on_locked(browser_name, processes)
-                except Exception as e:
-                    logger.error(
-                        f"Error in locked browser prompt callback: {e}")
-            if choice:
-                kill_browser_processes(processes)
-                for c in locked_candidates:
-                    if c["browser"] == browser_name:
-                        retry_candidates.append(c)
-            else:
-                # If not, it will cancel!
-                raise LoginException(
-                    "Cookie extraction cancelled by user (declined to close locked browser).")
-
-        if retry_candidates:
-            # Filter out retried candidates from locked_candidates
-            locked_candidates = [
-                c for c in locked_candidates if c not in retry_candidates]
-            logger.info("Retrying extraction on force-closed browsers...")
-            time.sleep(1.0)
-            process_candidates(retry_candidates)
-
-    if not successful_profiles:
-        if locked_candidates:
-            locked_names = list(set(c["browser"] for c in locked_candidates))
-            raise LoginException(
-                f"Could not load cookies automatically because database is locked for: {', '.join(locked_names)}. "
-                "Please close these browsers completely and try again."
-            )
-        if v20_candidates:
-            v20_names = list(set(c["browser"] for c in v20_candidates))
-            raise LoginException(
-                f"Udemy session was found in {', '.join(v20_names)}, but the cookies are protected by new App-Bound Encryption (v20) which prevents external decryption.\n\n"
-                "Please export your Udemy cookies in JSON format (e.g. using Cookie-Editor extension), copy them to your clipboard, and click Extract & Auto Login again."
-            )
-        raise LoginException(
-            "Could not find active Udemy login cookies in any browser profile. "
-            "Please make sure you are logged in to udemy.com in your browser."
-        )
+    # 3. Dynamic Browser Profile Scan (Deprecated)
+    logger.warning("Automatic browser cookie extraction is deprecated.")
+    raise LoginException(
+        "Automatic browser cookie extraction is deprecated and no longer supported due to browser security limitations (e.g. App-Bound Encryption).\n\n"
+        "Please import your cookies manually:\n"
+        "1. Export your Udemy cookies in JSON format (using the Cookie-Editor extension).\n"
+        "2. Copy the JSON to your clipboard and click 'Extract & Auto Login' again (the app will automatically detect them).\n"
+        "3. Or, save the cookies text into the 'cookies.json' file in the application folder."
+    )
 
     selected_idx = 0
     if len(successful_profiles) > 1:

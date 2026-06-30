@@ -5,6 +5,28 @@ from duce.core.db import DatabaseManager
 
 
 class TestCourseModel(unittest.TestCase):
+    def test_cleanup_link(self):
+        from duce.utils.url import cleanup_link
+        # Test standard trk.udemy.com with "u"
+        url_u = "https://trk.udemy.com/c/123/456/789?u=https://www.udemy.com/course/python-course/"
+        self.assertEqual(cleanup_link(url_u), "https://www.udemy.com/course/python-course/")
+
+        # Test trk.udemy.com with "url"
+        url_url = "https://trk.udemy.com/c/123/456/789?url=https://www.udemy.com/course/python-course-2/"
+        self.assertEqual(cleanup_link(url_url), "https://www.udemy.com/course/python-course-2/")
+
+        # Test trk.udemy.com with fallback scan of other parameters
+        url_other = "https://trk.udemy.com/c/123/456/789?custom_param=https://www.udemy.com/course/python-course-3/"
+        self.assertEqual(cleanup_link(url_other), "https://www.udemy.com/course/python-course-3/")
+
+        # Test Linksynergy
+        url_ls = "https://click.linksynergy.com/fs-bin/click?id=123&offerid=456&type=3&subid=0&RD_PARM1=https%3A%2F%2Fwww.udemy.com%2Fcourse%2Fpython-course-4%2F"
+        self.assertEqual(cleanup_link(url_ls), "https://www.udemy.com/course/python-course-4/")
+
+        # Test short trk.udemy.com redirect path
+        url_short = "https://trk.udemy.com/zzRbN0/"
+        self.assertEqual(cleanup_link(url_short), "https://trk.udemy.com/zzRbN0/")
+
     def test_url_normalization_and_slug(self):
         url = "https://www.udemy.com/course/python-programming-for-beginners/?couponCode=FREEPYTHON"
         course = Course("Python Course", url)
@@ -184,6 +206,54 @@ class TestUdemyClientSettings(unittest.TestCase):
         client.settings["sites"] = {"Real Discount": False}
         # Returns True (is invalid)
         self.assertTrue(client.validate_settings())
+
+    def test_network_timeout_enforcement(self):
+        from duce.utils.network import RobustRequestsSession, RobustCffiSession, use_cffi
+        from unittest.mock import patch, MagicMock
+
+        # Test RobustRequestsSession
+        session_req = RobustRequestsSession()
+        session_req.network_timeout = 75
+
+        with patch('requests.Session.request') as mock_req:
+            mock_req.return_value = MagicMock()
+            
+            # Case 1: No timeout passed
+            session_req.get("https://example.com")
+            kwargs = mock_req.call_args[1]
+            self.assertEqual(kwargs["timeout"], 75)
+
+            # Case 2: Smaller timeout passed
+            session_req.get("https://example.com", timeout=10)
+            kwargs = mock_req.call_args[1]
+            self.assertEqual(kwargs["timeout"], 75)
+
+            # Case 3: Larger timeout passed
+            session_req.get("https://example.com", timeout=100)
+            kwargs = mock_req.call_args[1]
+            self.assertEqual(kwargs["timeout"], 100)
+
+            # Case 4: Tuple timeout passed
+            session_req.get("https://example.com", timeout=(5, 10))
+            kwargs = mock_req.call_args[1]
+            self.assertEqual(kwargs["timeout"], (75, 75))
+
+        # Test RobustCffiSession if cffi is used
+        if use_cffi:
+            session_cffi = RobustCffiSession()
+            session_cffi.network_timeout = 85
+            with patch('curl_cffi.requests.Session.request') as mock_cffi_req:
+                mock_cffi_req.return_value = MagicMock()
+                
+                # Case 1: No timeout passed
+                session_cffi.get("https://example.com")
+                kwargs = mock_cffi_req.call_args[1]
+                self.assertEqual(kwargs["timeout"], 85)
+
+                # Case 2: Smaller timeout passed
+                session_cffi.get("https://example.com", timeout=12)
+                kwargs = mock_cffi_req.call_args[1]
+                self.assertEqual(kwargs["timeout"], 85)
 
 
 if __name__ == "__main__":

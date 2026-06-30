@@ -181,7 +181,8 @@ class Udemy:
             "use_browser_cookies": False,
             "proxies": {"http": "", "https": ""},
             "discord_webhook_url": "",
-            "allow_insecure_ssl_fallback": False
+            "allow_insecure_ssl_fallback": False,
+            "network_timeout": 60
         }
 
         # Merge missing top-level and dictionary-level keys
@@ -199,7 +200,7 @@ class Udemy:
 
         self.settings["languages"] = dict(
             sorted(self.settings["languages"].items(),
-                   key=lambda item: item[0])
+                    key=lambda item: item[0])
         )
         self.save_settings()
         self.title_exclude = "\n".join(self.settings["title_exclude"])
@@ -221,6 +222,14 @@ class Udemy:
         self.client.allow_insecure_fallback = allow_fallback
         from duce.utils import network
         network.session.allow_insecure_fallback = allow_fallback
+
+        # Apply Network Timeout setting
+        network_timeout = self.settings.get("network_timeout", 60)
+        network.RobustRequestsSession.network_timeout = network_timeout
+        if hasattr(network, "RobustCffiSession"):
+            network.RobustCffiSession.network_timeout = network_timeout
+        self.client.network_timeout = network_timeout
+        network.session.network_timeout = network_timeout
 
     def save_settings(self):
         settings_file = get_user_data_path(
@@ -261,7 +270,7 @@ class Udemy:
             adapter = SystemCertHTTPAdapter()
             s.mount("https://", adapter)
             r_version = s.get(
-                "https://api.github.com/repos/techtanic/Discounted-Udemy-Course-Enroller/releases/latest",
+                "https://api.github.com/repos/MikeWIseX0/Discounted-Udemy-Course-Enroller/releases/latest",
                 timeout=15
             )
             if r_version.status_code != 200:
@@ -571,16 +580,28 @@ class Udemy:
         if not self.is_course_updated():
             logger.info(
                 f"Course excluded: Last updated {self.course.last_update}")
+            self.course.status_text = "Excluded: Outdated"
+            self.course.status_color = "#8E8E93"
         elif self.is_instructor_excluded():
             logger.info(f"Instructor excluded: {self.course.instructors[0]}")
+            self.course.status_text = "Excluded: Instructor"
+            self.course.status_color = "#8E8E93"
         elif self.is_keyword_excluded():
             logger.info("Keyword Excluded")
+            self.course.status_text = "Excluded: Title Keyword"
+            self.course.status_color = "#8E8E93"
         elif course_category not in selected_categories:
             logger.info(f"Category excluded: {self.course.category}")
+            self.course.status_text = f"Excluded Category: {self.course.category or 'None'}"
+            self.course.status_color = "#8E8E93"
         elif course_language not in selected_languages:
             logger.info(f"Language excluded: {self.course.language}")
+            self.course.status_text = f"Excluded Language: {self.course.language or 'None'}"
+            self.course.status_color = "#8E8E93"
         elif self.course.rating < self.min_rating:
             logger.info(f"Low rating: {self.course.rating}")
+            self.course.status_text = f"Excluded: Low Rating ({self.course.rating})"
+            self.course.status_color = "#8E8E93"
         else:
             return
         self.course.is_excluded = True
@@ -751,12 +772,17 @@ class Udemy:
                 logger.info("Enrollment process cancelled by user")
                 break
             self.course = current_course
+            self.course.status_text = "Evaluating..."
+            self.course.status_color = "#00F2FE"
             self.total_courses_processed = (index + 1)
+            self.update_progress()
 
             slug = self.course.slug
             if slug and slug in self.processed_slugs:
                 logger.info(
                     f"Bypassing redundant course evaluation for slug: {slug}")
+                self.course.status_text = "Bypassed (Duplicate)"
+                self.course.status_color = "#8E8E93"
                 self.update_progress()
                 continue
 
@@ -773,6 +799,8 @@ class Udemy:
                             "Already enrolled (enrollment date unavailable)")
                 else:
                     logger.info("Already enrolled")
+                self.course.status_text = "Already Enrolled"
+                self.course.status_color = "#FF9F0A"
                 self.already_enrolled_c += 1
                 if slug:
                     self.processed_slugs.add(slug)
@@ -810,6 +838,8 @@ class Udemy:
 
                 if not self.course.is_valid:
                     logger.error(f"Invalid: {self.course.error}")
+                    self.course.status_text = f"Invalid: {self.course.error}"
+                    self.course.status_color = "#FF453A"
                     self.excluded_c += 1
 
                 elif self.is_already_enrolled():
@@ -824,19 +854,26 @@ class Udemy:
                                 "Already enrolled (enrollment date unavailable)")
                     else:
                         logger.info("Already enrolled")
+                    self.course.status_text = "Already Enrolled"
+                    self.course.status_color = "#FF9F0A"
                     self.already_enrolled_c += 1
                 elif self.course.is_excluded:
+                    # Note: status_text is already set inside is_course_excluded()
                     self.excluded_c += 1
 
                 elif self.course.is_free:
                     if self.settings["discounted_only"]:
                         logger.info(
                             "Free course excluded (discounted only setting)")
+                        self.course.status_text = "Excluded: Free Course"
+                        self.course.status_color = "#8E8E93"
                         self.excluded_c += 1
                     else:
                         self.free_checkout()
                         if self.course.status:
                             logger.success("Successfully Subscribed")
+                            self.course.status_text = "Successfully Subscribed"
+                            self.course.status_color = "#2ECC71"
                             self.successfully_enrolled_c += 1
                             self.save_course()
                             db.save_enrolled_courses(
@@ -844,15 +881,21 @@ class Udemy:
                         else:
                             logger.info(
                                 "Unknown Error: Report this link to the developer")
+                            self.course.status_text = "Failed to Subscribe"
+                            self.course.status_color = "#FF453A"
                             self.expired_c += 1
 
                 elif not self.course.is_coupon_valid:
                     logger.info("Coupon Expired")
+                    self.course.status_text = "Coupon Expired"
+                    self.course.status_color = "#FF453A"
                     self.expired_c += 1
 
                 elif self.course.is_coupon_valid:
                     self.valid_courses.append(self.course)
                     logger.info("Added for enrollment")
+                    self.course.status_text = "Added for Enrollment"
+                    self.course.status_color = "#2ECC71"
 
                 if final_slug:
                     self.processed_slugs.add(final_slug)
