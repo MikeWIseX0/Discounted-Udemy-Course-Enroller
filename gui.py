@@ -291,27 +291,33 @@ class CookieInstructionsDialog(ctk.CTkToplevel):
             ("Step 1: ", "bold"),
             ("Install the '", "normal"),
             ("Cookie-Editor", "highlight"),
-            ("' extension in Chrome, Firefox, Edge, or Brave.\n\n\n", "normal"),
+            ("' extension in your web browser (Chrome, Firefox, Edge, or Brave).\n\n\n", "normal"),
 
             ("Step 2: ", "bold"),
-            ("Log in to your Udemy account in your browser.\n\n\n", "normal"),
+            ("Log in to your Udemy account on ", "normal"),
+            ("www.udemy.com", "highlight"),
+            (" in the same browser.\n\n\n", "normal"),
 
             ("Step 3: ", "bold"),
-            ("Click the Cookie-Editor extension icon, then click '", "normal"),
+            ("Click the '", "normal"),
+            ("Cookie-Editor", "highlight"),
+            ("' icon (looks like a cookie in your browser's top-right toolbar), then click '", "normal"),
             ("Export", "highlight"),
-            ("' (select '", "normal"),
+            ("' and select '", "normal"),
             ("JSON", "highlight"),
-            ("') to copy cookies to clipboard.\n\n\n", "normal"),
+            ("' (this automatically copies the cookies to your clipboard).\n\n\n", "normal"),
 
             ("Step 4: ", "bold"),
-            ("Click '", "normal"),
+            ("Return to this app and click '", "normal"),
             ("Extract & Auto Login", "highlight"),
-            ("' in this app to automatically import from clipboard and log in!\n\n\n", "normal"),
+            ("' to automatically load them from your clipboard and log in!\n\n\n", "normal"),
 
             ("Alternative Option:\n\n", "bold"),
             ("If clipboard auto-detection fails, click '", "normal"),
             ("Open cookies.json", "highlight"),
-            ("' below, paste your copied cookies JSON into it, save/close, and try again.", "normal")
+            ("' below, paste the copied JSON text (Ctrl+V), save and close the file, and then click '", "normal"),
+            ("Extract & Auto Login", "highlight"),
+            ("' again.", "normal")
         ]
 
         for text, tag in segments:

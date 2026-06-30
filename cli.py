@@ -809,9 +809,11 @@ if __name__ == "__main__":
                         f"[bold yellow]Automatic browser cookie extraction is deprecated due to modern browser security restrictions (e.g. App-Bound Encryption).[/bold yellow]\n")
                     console.print(
                         "[bold cyan]How to import cookies manually:[/bold cyan]\n\n"
-                        "[bold white]1.[/bold white] Export cookies in JSON format using the [bold cyan]'Cookie-Editor'[/bold cyan] extension.\n\n"
-                        "[bold white]2.[/bold white] Copy them to your clipboard and choose [bold cyan]'Retry'[/bold cyan] (copied cookies are auto-detected).\n\n"
-                        "[bold white]3.[/bold white] Or paste them directly into the file:\n"
+                        "[bold white]1.[/bold white] Install the [bold cyan]'Cookie-Editor'[/bold cyan] extension in your web browser.\n\n"
+                        "[bold white]2.[/bold white] Log in to your Udemy account on [bold cyan]www.udemy.com[/bold cyan].\n\n"
+                        "[bold white]3.[/bold white] Click the [bold cyan]'Cookie-Editor'[/bold cyan] icon (cookie shape in top-right), click [bold cyan]'Export'[/bold cyan] and select [bold cyan]'JSON'[/bold cyan] (copies to clipboard).\n\n"
+                        "[bold white]4.[/bold white] Copy them to clipboard and choose [bold cyan]'Retry'[/bold cyan] (auto-detection will load them from clipboard).\n\n"
+                        "[bold white]5.[/bold white] Or paste (Ctrl+V) directly into the file:\n"
                         f"   [cyan]{cookies_path}[/cyan]\n"
                     )
 

@@ -459,9 +459,11 @@ def fetch_cookies(on_locked=None, on_select=None) -> tuple[dict, RequestsCookieJ
     raise LoginException(
         "Automatic browser cookie extraction is deprecated due to modern browser security restrictions (e.g. App-Bound Encryption).\n\n"
         "Please import your cookies manually:\n\n"
-        "1. Export cookies in JSON format using the 'Cookie-Editor' extension.\n\n"
-        "2. Copy them to your clipboard and click 'Extract & Auto Login' (auto-detected from clipboard).\n\n"
-        "3. Or paste them directly into the 'cookies.json' file in the application folder."
+        "1. Install the 'Cookie-Editor' extension in Chrome, Firefox, Edge, or Brave.\n\n"
+        "2. Log in to your Udemy account on www.udemy.com.\n\n"
+        "3. Click the 'Cookie-Editor' icon (cookie shape in top-right), click 'Export', and select 'JSON' (copies to clipboard).\n\n"
+        "4. Return to this app and click 'Extract & Auto Login' (will load automatically from clipboard).\n\n"
+        "5. Or paste (Ctrl+V) directly into the 'cookies.json' file in the application folder."
     )
 
     selected_idx = 0
