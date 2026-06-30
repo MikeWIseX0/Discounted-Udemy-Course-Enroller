@@ -251,10 +251,20 @@ def toggle_websites_menu(udemy_obj: Udemy):
 
         console.print(table)
         console.print(
-            "\nType a number to toggle, or press [bold cyan]Enter[/bold cyan] to go back.")
+            "\nType a number to toggle, [bold cyan]0[/bold cyan] for All Off, [bold cyan]00[/bold cyan] for All On, or press [bold cyan]Enter[/bold cyan] to go back.")
         choice = console.input("[cyan]Choice: [/cyan]").strip()
         if not choice:
             break
+        if choice == "0":
+            for s in sites:
+                udemy_obj.settings["sites"][s] = False
+            udemy_obj.save_settings()
+            continue
+        elif choice == "00":
+            for s in sites:
+                udemy_obj.settings["sites"][s] = True
+            udemy_obj.save_settings()
+            continue
         try:
             choice_idx = int(choice) - 1
             if 0 <= choice_idx < len(sites):
@@ -292,10 +302,20 @@ def toggle_categories_menu(udemy_obj: Udemy):
 
         console.print(table)
         console.print(
-            "\nType a number to toggle, or press [bold cyan]Enter[/bold cyan] to go back.")
+            "\nType a number to toggle, [bold cyan]0[/bold cyan] for All Off, [bold cyan]00[/bold cyan] for All On, or press [bold cyan]Enter[/bold cyan] to go back.")
         choice = console.input("[cyan]Choice: [/cyan]").strip()
         if not choice:
             break
+        if choice == "0":
+            for cat in categories:
+                udemy_obj.settings["categories"][cat] = False
+            udemy_obj.save_settings()
+            continue
+        elif choice == "00":
+            for cat in categories:
+                udemy_obj.settings["categories"][cat] = True
+            udemy_obj.save_settings()
+            continue
         try:
             choice_idx = int(choice) - 1
             if 0 <= choice_idx < len(categories):
@@ -333,10 +353,20 @@ def toggle_languages_menu(udemy_obj: Udemy):
 
         console.print(table)
         console.print(
-            "\nType a number to toggle, or press [bold cyan]Enter[/bold cyan] to go back.")
+            "\nType a number to toggle, [bold cyan]0[/bold cyan] for All Off, [bold cyan]00[/bold cyan] for All On, or press [bold cyan]Enter[/bold cyan] to go back.")
         choice = console.input("[cyan]Choice: [/cyan]").strip()
         if not choice:
             break
+        if choice == "0":
+            for lang in languages:
+                udemy_obj.settings["languages"][lang] = False
+            udemy_obj.save_settings()
+            continue
+        elif choice == "00":
+            for lang in languages:
+                udemy_obj.settings["languages"][lang] = True
+            udemy_obj.save_settings()
+            continue
         try:
             choice_idx = int(choice) - 1
             if 0 <= choice_idx < len(languages):
