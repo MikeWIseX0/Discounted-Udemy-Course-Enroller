@@ -808,9 +808,9 @@ if __name__ == "__main__":
                     console.print(
                         f"[bold yellow]Automatic browser cookie extraction is deprecated and no longer supported due to browser security limitations (e.g. App-Bound Encryption).[/bold yellow]\n")
                     console.print(
-                        "[bold cyan]How to import cookies in CLI mode:[/bold cyan]\n"
-                        "1. Export your Udemy cookies in JSON format from your browser using an extension like 'Cookie-Editor'.\n"
-                        "2. Copy the exported cookies to your clipboard and retry (the app will automatically detect and import them from your clipboard).\n"
+                        "[bold cyan]How to import cookies in CLI mode:[/bold cyan]\n\n"
+                        "1. Export your Udemy cookies in JSON format from your browser using an extension like 'Cookie-Editor'.\n\n"
+                        "2. Copy the exported cookies to your clipboard and retry (the app will automatically detect and import them from your clipboard).\n\n"
                         "3. Alternatively, paste the copied JSON cookies directly into the file:\n"
                         f"   [cyan]{cookies_path}[/cyan]\n"
                     )

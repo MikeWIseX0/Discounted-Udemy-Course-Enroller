@@ -244,7 +244,7 @@ class CookieInstructionsDialog(ctk.CTkToplevel):
 
         desc_lbl = ctk.CTkLabel(
             self.frame,
-            text="Automatic browser cookie extraction is deprecated due to modern browser security restrictions.\nFollow the easy steps below to log in using cookies:",
+            text="Automatic browser cookie extraction is deprecated due to modern browser security restrictions.\n\nFollow the easy steps below to log in using cookies:",
             font=("Segoe UI", 11),
             text_color="#E1E1E6",
             justify="left"
@@ -281,11 +281,11 @@ class CookieInstructionsDialog(ctk.CTkToplevel):
         steps_box.grid(row=4, column=0, padx=20, pady=(0, 15), sticky="nsew")
 
         steps_text = (
-            "Step 1: Install the 'Cookie-Editor' extension in Chrome, Edge, Brave, or Firefox.\n\n"
-            "Step 2: Log in to your Udemy account on www.udemy.com in your web browser.\n\n"
-            "Step 3: Click the Cookie-Editor extension icon in your browser, click 'Export' (select 'JSON' if asked), which automatically copies your cookies to your clipboard!\n\n"
-            "Step 4: Now just click 'Extract & Auto Login' in this app. The app automatically detects your copied cookies from the clipboard, imports them, and logs you in!\n\n"
-            "Alternative Option:\n"
+            "Step 1: Install the 'Cookie-Editor' extension in Chrome, Edge, Brave, or Firefox.\n\n\n"
+            "Step 2: Log in to your Udemy account on www.udemy.com in your web browser.\n\n\n"
+            "Step 3: Click the Cookie-Editor extension icon in your browser, click 'Export' (select 'JSON' if asked), which automatically copies your cookies to your clipboard!\n\n\n"
+            "Step 4: Now just click 'Extract & Auto Login' in this app. The app automatically detects your copied cookies from the clipboard, imports them, and logs you in!\n\n\n"
+            "Alternative Option:\n\n"
             "If clipboard import doesn't work, click the 'Open cookies.json' button below. Delete any existing text inside, paste your copied cookies, save & close the file, and then try 'Extract & Auto Login' again."
         )
         steps_box.insert("1.0", steps_text)
