@@ -23,7 +23,7 @@ Everything you need can be found on our documentation website: **https://techtan
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
 - **Beautiful & Modern GUI**: Implements a dark charcoal theme with a single-window navigation sidebar built on CustomTkinter.
 - **One-Click Cookie Login**: Safe, instantaneous authentication utilizing exported or local browser cookies (supports Chrome, Edge, Brave, Firefox, Opera, and more).
@@ -35,7 +35,7 @@ Everything you need can be found on our documentation website: **https://techtan
 
 ---
 
-## 💾 Downloads
+## Downloads
 
 <table>
 <thead>
@@ -62,7 +62,7 @@ Everything you need can be found on our documentation website: **https://techtan
 
 ---
 
-## 🛠️ Running from Source
+## Running from Source
 
 If you prefer to run DUCE directly from Python, follow these setup instructions:
 
@@ -101,7 +101,7 @@ If you prefer to run DUCE directly from Python, follow these setup instructions:
 
 ---
 
-## 🧪 Testing
+## Testing
 
 DUCE includes a fully offline automated unit test suite. Run the tests using:
 ```bash
@@ -110,7 +110,7 @@ python -m unittest discover -s tests -v
 
 ---
 
-## 🍪 Cookie Extraction & App-Bound Encryption
+## Cookie Extraction and App-Bound Encryption
 Starting with Chromium v120+, session cookies on Windows may be locked under **App-Bound Encryption (v20)** which blocks external scripts from decrypting local cookie stores. 
 
 If DUCE displays a warning regarding App-Bound protection:
@@ -121,7 +121,7 @@ If DUCE displays a warning regarding App-Bound protection:
 
 ---
 
-## 🖼️ GUI Screenshots
+## GUI Screenshots
 
 <details>
 <summary>View Screenshots</summary>
@@ -142,7 +142,7 @@ If DUCE displays a warning regarding App-Bound protection:
 
 ---
 
-## ⚠️ Disclaimer
+## Disclaimer
 
 ![](/extra/disclaimer.png)
 
@@ -150,11 +150,11 @@ This software is for educational and personal use only. Use at your own risk.
 
 ---
 
-## 💖 Support the Project
+## Support the Project
 
 If you find DUCE helpful, feel free to support the developer:
 
 - **Bitcoin (BTC)**: `bc1qdyjwj0eqxjk5hxejah4gyclrumwtqs3hqp63uz`
 - **Bitcoin (BTC Legacy)**: `14JNjiNoiKcbCHcxcqUxgJcVgyDfhGbxQF`
 
-<p align="center">Made with ❤️ for the open-source community</p>
+<p align="center">Made with care for the open-source community</p>

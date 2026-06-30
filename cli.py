@@ -50,9 +50,14 @@ verify_dependencies()
 console = Console()
 udemy = None
 scraper = None
+INTERACTIVE = True
 
 
 def cli_on_locked(browser_name, processes):
+    if not INTERACTIVE:
+        logger.warning(
+            f"Browser '{browser_name}' is locked. Forcing close in non-interactive mode.")
+        return True
     from rich.prompt import Confirm
     console.print(
         f"\n[bold yellow]Browser '{browser_name}' is currently open and locking its database.[/bold yellow]")
@@ -62,6 +67,9 @@ def cli_on_locked(browser_name, processes):
 
 
 def cli_on_select(candidates_names):
+    if not INTERACTIVE:
+        logger.info("Automatically selecting first cookie profile in non-interactive mode.")
+        return 0
     from rich.prompt import Prompt
     console.print(
         "\n[bold cyan]Multiple profiles containing Udemy cookies were found:[/bold cyan]")
@@ -525,15 +533,17 @@ def view_history_menu(udemy_obj: Udemy):
     console.input("\nPress Enter to go back...")
 
 
-def run_course_enroller_process(udemy_obj: Udemy):
+def run_course_enroller_process(udemy_obj: Udemy, interactive=True):
     global scraper
-    console.clear()
+    if interactive:
+        console.clear()
     settings_invalid = udemy_obj.validate_settings()
     if settings_invalid:
         console.print("[bold red]Invalid settings configuration.[/bold red]")
         console.print(
             "[yellow]You must select at least one site, language, and category in the settings.[/yellow]")
-        console.input("\nPress Enter to go back...")
+        if interactive:
+            console.input("\nPress Enter to go back...")
         return
 
     scraper = Scraper(udemy_obj.sites)
@@ -603,7 +613,8 @@ def run_course_enroller_process(udemy_obj: Udemy):
     table.add_row("Expired Courses", f"[red]{udemy_obj.expired_c}[/red]")
 
     console.print(table)
-    console.input("\nPress Enter to return to Main Menu...")
+    if interactive:
+        console.input("\nPress Enter to return to Main Menu...")
 
 
 def main_menu_loop(udemy_obj: Udemy):
@@ -643,27 +654,44 @@ def main_menu_loop(udemy_obj: Udemy):
 
 if __name__ == "__main__":
     try:
-        # Check if running in an interactive terminal
-        if not sys.stdin.isatty():
-            logger.error("Standard input is not a TTY. CLI must be run in an interactive terminal.")
-            print("Error: CLI must be run in an interactive terminal.", file=sys.stderr)
-            sys.exit(1)
+        import argparse
+        parser = argparse.ArgumentParser(
+            description="Discounted Udemy Course Enroller (DUCE) CLI",
+            add_help=False
+        )
+        parser.add_argument("-h", "--help", action="help", help="Show this help message and exit")
+        parser.add_argument("-v", "--version", action="version", version=f"DUCE CLI {VERSION}", help="Show program version number and exit")
+        parser.add_argument("-n", "--non-interactive", action="store_true", help="Run enroller in non-interactive / automated mode")
+        parser.add_argument("-i", "--interval", type=int, default=0, help="Automatically run enroller repeatedly every N minutes")
 
-        logger.info("Starting CLI application")
+        args, unknown = parser.parse_known_args()
+
+        # Check TTY status and configure interactive flag
+        is_tty = sys.stdin.isatty()
+        if args.non_interactive or args.interval > 0:
+            INTERACTIVE = False
+        elif not is_tty:
+            # Fall back to non-interactive mode automatically if not run from a TTY (cron/ci)
+            logger.info("Standard input is not a TTY. Defaulting to non-interactive mode.")
+            INTERACTIVE = False
+        else:
+            INTERACTIVE = True
+
+        logger.info(f"Starting CLI application (interactive={INTERACTIVE})")
         udemy = Udemy("cli")
         udemy.load_settings()
         login_title, main_title = udemy.check_for_update()
 
-        console.print(
-            Panel.fit(
-                f"[bold green]Discounted Udemy Course Enroller[/bold green] [cyan]{VERSION}[/cyan]",
-                title="Welcome to DUCE",
-                border_style="green",
+        if INTERACTIVE:
+            console.print(
+                Panel.fit(
+                    f"[bold green]Discounted Udemy Course Enroller[/bold green] [cyan]{VERSION}[/cyan]",
+                    title="Welcome to DUCE",
+                    border_style="green",
+                )
             )
-        )
-
-        if "Update" in login_title:
-            console.print(f"[bold yellow]{login_title}[/bold yellow]")
+            if "Update" in login_title:
+                console.print(f"[bold yellow]{login_title}[/bold yellow]")
 
         login_successful = False
         while not login_successful:
@@ -671,9 +699,13 @@ if __name__ == "__main__":
                 login_method = ""
                 if udemy.settings["use_browser_cookies"]:
                     login_method = "Browser Cookies"
-                    with console.status(
-                        "[cyan]Trying to login using browser cookies...[/cyan]"
-                    ):
+                    if INTERACTIVE:
+                        with console.status(
+                            "[cyan]Trying to login using browser cookies...[/cyan]"
+                        ):
+                            udemy.fetch_cookies(
+                                on_locked=cli_on_locked, on_select=cli_on_select)
+                    else:
                         udemy.fetch_cookies(
                             on_locked=cli_on_locked, on_select=cli_on_select)
                 elif udemy.settings["email"] and udemy.settings["password"]:
@@ -683,6 +715,8 @@ if __name__ == "__main__":
                     )
                     login_method = "Saved Email and Password"
                 else:
+                    if not INTERACTIVE:
+                        raise LoginException("No saved credentials or cookies found. Cannot run non-interactively.")
                     email = console.input("[cyan]Email: [/cyan]")
                     password = console.input(
                         "[cyan]Password: [/cyan]", password=True)
@@ -692,10 +726,16 @@ if __name__ == "__main__":
                 console.print(
                     f"[cyan]Trying to login using {login_method}...[/cyan]")
                 if "Email" in login_method:
-                    with console.status("[cyan]Logging in...[/cyan]"):
+                    if INTERACTIVE:
+                        with console.status("[cyan]Logging in...[/cyan]"):
+                            udemy.manual_login(email, password)
+                    else:
                         udemy.manual_login(email, password)
 
-                with console.status("[cyan]Getting Enrolled Courses...[/cyan]"):
+                if INTERACTIVE:
+                    with console.status("[cyan]Getting Enrolled Courses...[/cyan]"):
+                        udemy.get_session_info()
+                else:
                     udemy.get_session_info()
 
                 if "Email" in login_method:
@@ -706,6 +746,9 @@ if __name__ == "__main__":
                 login_successful = True
             except LoginException as e:
                 handle_error("Login error", error=e, exit_program=False)
+                if not INTERACTIVE:
+                    logger.error("Login failed in non-interactive mode. Exiting.")
+                    sys.exit(1)
                 if "Browser" in login_method:
                     cookies_path = get_user_data_path("cookies.json")
                     if not os.path.exists(cookies_path):
@@ -781,8 +824,21 @@ if __name__ == "__main__":
         logger.info("Logged in")
         time.sleep(1)
 
-        # Enter main application menu loop
-        main_menu_loop(udemy)
+        # Enter main application loop
+        if INTERACTIVE:
+            main_menu_loop(udemy)
+        else:
+            if args.interval > 0:
+                console.print(f"[bold cyan]Starting automation loop: running once every {args.interval} minutes.[/bold cyan]")
+                logger.info(f"Starting automation loop: interval={args.interval} minutes")
+                while True:
+                    run_course_enroller_process(udemy, interactive=False)
+                    console.print(f"\n[cyan]Enroller run completed. Sleeping for {args.interval} minutes...[/cyan]")
+                    time.sleep(args.interval * 60)
+            else:
+                run_course_enroller_process(udemy, interactive=False)
+                console.print("[bold green]Automation run completed successfully.[/bold green]")
+                sys.exit(0)
 
     except Exception as e:
         handle_error("A critical error occurred", error=e, exit_program=True)
