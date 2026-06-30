@@ -1,12 +1,45 @@
-# Contributing to the project
+# Contributing to DUCE
 
-I am happy to receive issues describing bug reports and feature requests! If your bug report relates to a security vulnerability, please do not file a public issue, and please instead reach out to me. I do not accept (and do not wish to receive) contributions of user-created or third-party code, including patches, pull requests, or code snippets incorporated into submitted issues. Please do not send me any such code!
+We welcome bug reports, feature requests, and community discussions! Below are the guidelines for contributing to the **Discounted Udemy Course Enroller**.
 
-If you have a feature request, please describe the feature you would like to see, and why you think it would be useful. I am always interested in hearing about new ideas for the project.
+---
 
-If you have a bug report, please describe the issue you are experiencing, and provide as much detail as possible. If you can provide a minimal example that reproduces the issue, that is even better! I will do my best to address the issue as quickly as possible.
+## 🙋 Getting Started
 
-Thank you for your interest in contributing to the project! I appreciate your help in making the project better for everyone.
+- **Discussions & Support**: Join our [Discord Server](https://discord.gg/wFsfhJh4Rh) to chat with the community or get help.
+- **Reporting Issues**: Check the [Issues Tab](https://github.com/techtanic/Discounted-Udemy-Course-Enroller/issues) to see if your bug or request has already been reported.
 
+---
 
+## 🐛 Bug Reports
 
+To help us resolve bugs quickly, please include as much detail as possible in your reports:
+1. **Application Version**: (e.g. GUI v3.0.0 or CLI v3.0.0).
+2. **Operating System**: (e.g. Windows 11, Linux Ubuntu 22.04).
+3. **Log Output**: Attach relevant traceback messages from `duce_debug.log`.
+4. **Steps to Reproduce**: Detailed instructions on how to trigger the error.
+
+> [!NOTE]  
+> If you find a security-sensitive vulnerability, please **do not** open a public issue. Instead, report it privately to the maintainers.
+
+---
+
+## 💡 Feature Requests
+
+We are always looking to improve! When suggesting a feature, please outline:
+- **The Problem**: What limitation or friction does this feature address?
+- **The Proposal**: How should the feature behave?
+- **The Value**: Why is this feature beneficial for the wider community?
+
+---
+
+## 💻 Pull Requests & Code Contributions
+
+At this stage, we do not accept unsolicited pull requests (PRs) or third-party code patches. If you wish to propose significant code modifications:
+1. Open an issue first to discuss the implementation details.
+2. Ensure any proposed changes are thoroughly tested using our offline test suites (`python -m unittest discover -s tests`).
+3. Adhere to Python PEP8 style standards (e.g. format code using `autopep8` and verify with `flake8`).
+
+---
+
+Thank you for helping to make DUCE better! Your feedback is highly appreciated.
