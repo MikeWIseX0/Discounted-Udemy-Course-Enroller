@@ -39,7 +39,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['tkinter', '_tkinter', 'customtkinter', 'darkdetect', 'unittest', 'pydoc'],
+    excludes=['tkinter', '_tkinter', 'customtkinter', 'darkdetect', 'unittest', 'pydoc', 'lxml'],
     noarchive=False,
     optimize=2,
 )

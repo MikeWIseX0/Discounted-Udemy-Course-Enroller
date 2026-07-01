@@ -4,7 +4,6 @@ requests==2.34.2
 pyOpenSSL==26.3.0
 rich==15.0.0
 loguru==0.7.3
-lxml==6.1.1
 customtkinter==5.2.2
 darkdetect==0.8.0
 brotli==1.1.0
