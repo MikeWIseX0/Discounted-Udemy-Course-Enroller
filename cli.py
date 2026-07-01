@@ -522,6 +522,12 @@ def edit_settings_menu(udemy_obj: Udemy):
 
 def test_connection(udemy_obj: Udemy):
     console.print("\n[cyan]Attempting login connection test...[/cyan]")
+    global _log_sink_id
+    has_sink = (_log_sink_id is not None)
+    if has_sink:
+        logger.remove(_log_sink_id)
+        _log_sink_id = None
+
     try:
         # Try cookies first (mirrors the startup login logic)
         cookies_exist = os.path.exists(get_user_data_path("cookies.json")) or os.path.exists(get_user_data_path("udemy-cookies.json"))
@@ -546,6 +552,9 @@ def test_connection(udemy_obj: Udemy):
     except Exception as e:
         console.print(
             f"[bold red]Login Connection Test Failed![/bold red]\nError: {e}")
+    finally:
+        if has_sink:
+            configure_logging(udemy_obj.settings.get("verbose_logging", False))
     console.input("\nPress Enter to continue...")
 
 
@@ -637,75 +646,86 @@ def run_course_enroller_process(udemy_obj: Udemy, interactive=True):
             console.input("\nPress Enter to go back...")
         return
 
-    scraper = Scraper(udemy_obj.sites)
+    # Mute standard logging to console during interactive scraping and checkout to prevent screen glitching
+    global _log_sink_id
+    has_sink = (_log_sink_id is not None)
+    if interactive and has_sink:
+        logger.remove(_log_sink_id)
+        _log_sink_id = None
 
-    console.print(
-        "\n[bold cyan]Scraping courses from selected sites...[/bold cyan]")
-    logger.info("Scraping courses from selected sites")
+    try:
+        scraper = Scraper(udemy_obj.sites)
 
-    udemy_obj.progress = Progress(
-        SpinnerColumn(finished_text="🟢"),
-        TextColumn("[bold blue]{task.description}"),
-        BarColumn(),
-        TextColumn("{task.percentage:.0f}%"),
-        TimeRemainingColumn(elapsed_when_finished=True),
-    )
+        console.print(
+            "\n[bold cyan]Scraping courses from selected sites...[/bold cyan]")
+        logger.info("Scraping courses from selected sites")
 
-    with udemy_obj.progress:
-        udemy_obj.scraped_data = scraper.get_scraped_courses(
-            create_scraping_thread)
+        udemy_obj.progress = Progress(
+            SpinnerColumn(finished_text="🟢"),
+            TextColumn("[bold blue]{task.description}"),
+            BarColumn(),
+            TextColumn("{task.percentage:.0f}%"),
+            TimeRemainingColumn(elapsed_when_finished=True),
+        )
 
-    total_courses = len(udemy_obj.scraped_data)
-    console.print(f"[green]Found {total_courses} courses to process[/green]")
-    time.sleep(1)
+        with udemy_obj.progress:
+            udemy_obj.scraped_data = scraper.get_scraped_courses(
+                create_scraping_thread)
 
-    panel = create_unified_live_panel(udemy_obj, total_courses)
-    udemy_obj.total_courses_processed = 0
-    udemy_obj.total_courses = total_courses
+        total_courses = len(udemy_obj.scraped_data)
+        console.print(f"[green]Found {total_courses} courses to process[/green]")
+        time.sleep(1)
 
-    from decimal import Decimal
-    udemy_obj.successfully_enrolled_c = 0
-    udemy_obj.already_enrolled_c = 0
-    udemy_obj.expired_c = 0
-    udemy_obj.excluded_c = 0
-    udemy_obj.amount_saved_c = Decimal(0)
-    udemy_obj.valid_courses = []
+        panel = create_unified_live_panel(udemy_obj, total_courses)
+        udemy_obj.total_courses_processed = 0
+        udemy_obj.total_courses = total_courses
 
-    with Live(panel, screen=False, transient=True) as live:
-        def update_progress():
-            live.update(create_unified_live_panel(udemy_obj, total_courses))
+        from decimal import Decimal
+        udemy_obj.successfully_enrolled_c = 0
+        udemy_obj.already_enrolled_c = 0
+        udemy_obj.expired_c = 0
+        udemy_obj.excluded_c = 0
+        udemy_obj.amount_saved_c = Decimal(0)
+        udemy_obj.valid_courses = []
 
-        udemy_obj.update_progress = update_progress
+        with Live(panel, screen=False, transient=True) as live:
+            def update_progress():
+                live.update(create_unified_live_panel(udemy_obj, total_courses))
 
-        try:
-            udemy_obj.start_new_enroll()
-        except KeyboardInterrupt:
-            console.print(
-                "\n[bold yellow]Process interrupted by user[/bold yellow]")
-        except Exception as e:
-            handle_error(
-                "An unexpected error occurred during enroller run", error=e, exit_program=False)
+            udemy_obj.update_progress = update_progress
 
-    console.print(
-        Panel.fit("[bold blue]Enrollment Results[/bold blue]", border_style="cyan"))
+            try:
+                udemy_obj.start_new_enroll()
+            except KeyboardInterrupt:
+                console.print(
+                    "\n[bold yellow]Process interrupted by user[/bold yellow]")
+            except Exception as e:
+                handle_error(
+                    "An unexpected error occurred during enroller run", error=e, exit_program=False)
 
-    table = Table(box=box.ROUNDED)
-    table.add_column("Stat", style="cyan")
-    table.add_column("Value", style="yellow")
+        console.print(
+            Panel.fit("[bold blue]Enrollment Results[/bold blue]", border_style="cyan"))
 
-    table.add_row("Successfully Enrolled",
-                  f"[green]{udemy_obj.successfully_enrolled_c}[/green]")
-    table.add_row(
-        "Amount Saved", f"[green]{round(udemy_obj.amount_saved_c, 2)} {udemy_obj.currency.upper()}[/green]")
-    table.add_row("Already Enrolled",
-                  f"[cyan]{udemy_obj.already_enrolled_c}[/cyan]")
-    table.add_row("Excluded Courses",
-                  f"[yellow]{udemy_obj.excluded_c}[/yellow]")
-    table.add_row("Expired Courses", f"[red]{udemy_obj.expired_c}[/red]")
+        table = Table(box=box.ROUNDED)
+        table.add_column("Stat", style="cyan")
+        table.add_column("Value", style="yellow")
 
-    console.print(table)
-    if interactive:
-        console.input("\nPress Enter to return to Main Menu...")
+        table.add_row("Successfully Enrolled",
+                      f"[green]{udemy_obj.successfully_enrolled_c}[/green]")
+        table.add_row(
+            "Amount Saved", f"[green]{round(udemy_obj.amount_saved_c, 2)} {udemy_obj.currency.upper()}[/green]")
+        table.add_row("Already Enrolled",
+                      f"[cyan]{udemy_obj.already_enrolled_c}[/cyan]")
+        table.add_row("Excluded Courses",
+                      f"[yellow]{udemy_obj.excluded_c}[/yellow]")
+        table.add_row("Expired Courses", f"[red]{udemy_obj.expired_c}[/red]")
+
+        console.print(table)
+        if interactive:
+            console.input("\nPress Enter to return to Main Menu...")
+    finally:
+        if interactive and has_sink:
+            configure_logging(udemy_obj.settings.get("verbose_logging", False))
 
 
 def main_menu_loop(udemy_obj: Udemy):
@@ -786,138 +806,146 @@ if __name__ == "__main__":
                 console.print(f"[bold yellow]{login_title}[/bold yellow]")
 
         login_successful = False
-        while not login_successful:
-            try:
-                login_method = ""
-                cookies_exist = os.path.exists(get_user_data_path("cookies.json")) or os.path.exists(get_user_data_path("udemy-cookies.json"))
-                if udemy.settings["use_browser_cookies"] or cookies_exist:
-                    login_method = "Browser Cookies"
-                    if INTERACTIVE:
-                        with console.status(
-                            "[cyan]Trying to login using browser cookies...[/cyan]"
-                        ):
+        has_sink = (_log_sink_id is not None)
+        if INTERACTIVE and has_sink:
+            logger.remove(_log_sink_id)
+            _log_sink_id = None
+
+        try:
+            while not login_successful:
+                try:
+                    login_method = ""
+                    cookies_exist = os.path.exists(get_user_data_path("cookies.json")) or os.path.exists(get_user_data_path("udemy-cookies.json"))
+                    if udemy.settings["use_browser_cookies"] or cookies_exist:
+                        login_method = "Browser Cookies"
+                        if INTERACTIVE:
+                            with console.status(
+                                "[cyan]Trying to login using browser cookies...[/cyan]"
+                            ):
+                                udemy.fetch_cookies(
+                                    on_locked=cli_on_locked, on_select=cli_on_select)
+                        else:
                             udemy.fetch_cookies(
                                 on_locked=cli_on_locked, on_select=cli_on_select)
+                    elif udemy.settings["email"] and udemy.settings["password"]:
+                        email, password = (
+                            udemy.settings["email"],
+                            udemy.settings["password"],
+                        )
+                        login_method = "Saved Email and Password"
                     else:
-                        udemy.fetch_cookies(
-                            on_locked=cli_on_locked, on_select=cli_on_select)
-                elif udemy.settings["email"] and udemy.settings["password"]:
-                    email, password = (
-                        udemy.settings["email"],
-                        udemy.settings["password"],
-                    )
-                    login_method = "Saved Email and Password"
-                else:
-                    if not INTERACTIVE:
-                        raise LoginException("No saved credentials or cookies found. Cannot run non-interactively.")
-                    email = console.input("[cyan]Email: [/cyan]")
-                    password = console.input(
-                        "[cyan]Password: [/cyan]", password=True)
-                    login_method = "Email and Password"
+                        if not INTERACTIVE:
+                            raise LoginException("No saved credentials or cookies found. Cannot run non-interactively.")
+                        email = console.input("[cyan]Email: [/cyan]")
+                        password = console.input(
+                            "[cyan]Password: [/cyan]", password=True)
+                        login_method = "Email and Password"
 
-                logger.info(f"Trying to login using {login_method}")
-                console.print(
-                    f"[cyan]Trying to login using {login_method}...[/cyan]")
-                if "Email" in login_method:
-                    if INTERACTIVE:
-                        with console.status("[cyan]Logging in...[/cyan]"):
+                    logger.info(f"Trying to login using {login_method}")
+                    console.print(
+                        f"[cyan]Trying to login using {login_method}...[/cyan]")
+                    if "Email" in login_method:
+                        if INTERACTIVE:
+                            with console.status("[cyan]Logging in...[/cyan]"):
+                                udemy.manual_login(email, password)
+                        else:
                             udemy.manual_login(email, password)
-                    else:
-                        udemy.manual_login(email, password)
 
-                if INTERACTIVE:
-                    with console.status("[cyan]Getting Enrolled Courses...[/cyan]"):
+                    if INTERACTIVE:
+                        with console.status("[cyan]Getting Enrolled Courses...[/cyan]"):
+                            udemy.get_session_info()
+                    else:
                         udemy.get_session_info()
-                else:
-                    udemy.get_session_info()
 
-                if "Email" in login_method:
-                    udemy.settings["email"], udemy.settings["password"] = (
-                        email,
-                        password,
-                    )
-                login_successful = True
-            except LoginException as e:
-                handle_error("Login error", error=e, exit_program=False)
-                if not INTERACTIVE:
-                    logger.error("Login failed in non-interactive mode. Exiting.")
-                    sys.exit(1)
-                if "Browser" in login_method:
-                    cookies_path = get_user_data_path("cookies.json")
-                    if not os.path.exists(cookies_path):
-                        template = [
-                            {
-                                "domain": ".udemy.com",
-                                "name": "access_token",
-                                "value": "PASTE_ACCESS_TOKEN_HERE",
-                                "path": "/"
-                            },
-                            {
-                                "domain": ".udemy.com",
-                                "name": "client_id",
-                                "value": "PASTE_CLIENT_ID_HERE",
-                                "path": "/"
-                            }
-                        ]
-                        try:
-                            import json
-                            with open(cookies_path, "w", encoding="utf-8") as f:
-                                json.dump(template, f, indent=4)
-                        except Exception as file_err:
-                            logger.error(
-                                f"Failed to create cookies.json template: {file_err}")
+                    if "Email" in login_method:
+                        udemy.settings["email"], udemy.settings["password"] = (
+                            email,
+                            password,
+                        )
+                    login_successful = True
+                except LoginException as e:
+                    handle_error("Login error", error=e, exit_program=False)
+                    if not INTERACTIVE:
+                        logger.error("Login failed in non-interactive mode. Exiting.")
+                        sys.exit(1)
+                    if "Browser" in login_method:
+                        cookies_path = get_user_data_path("cookies.json")
+                        if not os.path.exists(cookies_path):
+                            template = [
+                                {
+                                    "domain": ".udemy.com",
+                                    "name": "access_token",
+                                    "value": "PASTE_ACCESS_TOKEN_HERE",
+                                    "path": "/"
+                                },
+                                {
+                                    "domain": ".udemy.com",
+                                    "name": "client_id",
+                                    "value": "PASTE_CLIENT_ID_HERE",
+                                    "path": "/"
+                                }
+                            ]
+                            try:
+                                import json
+                                with open(cookies_path, "w", encoding="utf-8") as f:
+                                    json.dump(template, f, indent=4)
+                            except Exception as file_err:
+                                logger.error(
+                                    f"Failed to create cookies.json template: {file_err}")
 
-                    console.print(
-                        f"[bold yellow]Automatic browser cookie extraction is deprecated due to modern browser security restrictions (e.g. App-Bound Encryption).[/bold yellow]\n")
-                    console.print(
-                        "[bold cyan]How to import cookies manually:[/bold cyan]\n\n"
-                        "[bold white]1.[/bold white] Install the [bold cyan]'Cookie-Editor'[/bold cyan] extension in your web browser.\n\n"
-                        "[bold white]2.[/bold white] Log in to your Udemy account on [bold cyan]www.udemy.com[/bold cyan].\n\n"
-                        "[bold white]3.[/bold white] Click the [bold cyan]'Cookie-Editor'[/bold cyan] icon (cookie shape in top-right), click [bold cyan]'Export'[/bold cyan] and select [bold cyan]'JSON'[/bold cyan] (copies to clipboard).\n\n"
-                        "[bold white]4.[/bold white] Copy them to clipboard and choose [bold cyan]'Retry'[/bold cyan] (auto-detection will load them from clipboard).\n\n"
-                        "[bold white]5.[/bold white] Or paste (Ctrl+V) directly into the file:\n"
-                        f"   [cyan]{cookies_path}[/cyan]\n"
-                    )
+                        console.print(
+                            f"[bold yellow]Automatic browser cookie extraction is deprecated due to modern browser security restrictions (e.g. App-Bound Encryption).[/bold yellow]\n")
+                        console.print(
+                            "[bold cyan]How to import cookies manually:[/bold cyan]\n\n"
+                            "[bold white]1.[/bold white] Install the [bold cyan]'Cookie-Editor'[/bold cyan] extension in your web browser.\n\n"
+                            "[bold white]2.[/bold white] Log in to your Udemy account on [bold cyan]www.udemy.com[/bold cyan].\n\n"
+                            "[bold white]3.[/bold white] Click the [bold cyan]'Cookie-Editor'[/bold cyan] icon (cookie shape in top-right), click [bold cyan]'Export'[/bold cyan] and select [bold cyan]'JSON'[/bold cyan] (copies to clipboard).\n\n"
+                            "[bold white]4.[/bold white] Copy them to clipboard and choose [bold cyan]'Retry'[/bold cyan] (auto-detection will load them from clipboard).\n\n"
+                            "[bold white]5.[/bold white] Or paste (Ctrl+V) directly into the file:\n"
+                            f"   [cyan]{cookies_path}[/cyan]\n"
+                        )
+                        console.print("[cyan]Choose an option to continue:[/cyan]")
+                        console.print(
+                            "[bold cyan]1.[/bold cyan] Retry loading cookies (after closing browser or filling cookies.json)")
+                        console.print(
+                            "[bold cyan]2.[/bold cyan] Switch to Email and Password login")
+                        console.print("[bold cyan]3.[/bold cyan] Exit")
 
-                    console.print("[cyan]Choose an option to continue:[/cyan]")
-                    console.print(
-                        "[bold cyan]1.[/bold cyan] Retry loading cookies (after closing browser or filling cookies.json)")
-                    console.print(
-                        "[bold cyan]2.[/bold cyan] Switch to Email and Password login")
-                    console.print("[bold cyan]3.[/bold cyan] Exit")
+                        choice = ""
+                        while choice not in ["1", "2", "3"]:
+                            choice = console.input(
+                                "[cyan]Enter choice (1-3): [/cyan]").strip()
 
-                    choice = ""
-                    while choice not in ["1", "2", "3"]:
-                        choice = console.input(
-                            "[cyan]Enter choice (1-3): [/cyan]").strip()
+                        if choice == "1":
+                            udemy.settings["use_browser_cookies"] = True
+                        elif choice == "2":
+                            udemy.settings["use_browser_cookies"] = False
+                            udemy.settings["email"], udemy.settings["password"] = "", ""
+                        else:
+                            sys.exit(0)
+                    elif "Email" in login_method:
+                        console.print("[cyan]Choose an option to continue:[/cyan]")
+                        console.print(
+                            "[bold cyan]1.[/bold cyan] Retry Email and Password login")
+                        console.print(
+                            "[bold cyan]2.[/bold cyan] Switch to Browser Cookies login")
+                        console.print("[bold cyan]3.[/bold cyan] Exit")
 
-                    if choice == "1":
-                        udemy.settings["use_browser_cookies"] = True
-                    elif choice == "2":
-                        udemy.settings["use_browser_cookies"] = False
-                        udemy.settings["email"], udemy.settings["password"] = "", ""
-                    else:
-                        sys.exit(0)
-                elif "Email" in login_method:
-                    console.print("[cyan]Choose an option to continue:[/cyan]")
-                    console.print(
-                        "[bold cyan]1.[/bold cyan] Retry Email and Password login")
-                    console.print(
-                        "[bold cyan]2.[/bold cyan] Switch to Browser Cookies login")
-                    console.print("[bold cyan]3.[/bold cyan] Exit")
+                        choice = ""
+                        while choice not in ["1", "2", "3"]:
+                            choice = console.input(
+                                "[cyan]Enter choice (1-3): [/cyan]").strip()
 
-                    choice = ""
-                    while choice not in ["1", "2", "3"]:
-                        choice = console.input(
-                            "[cyan]Enter choice (1-3): [/cyan]").strip()
-
-                    if choice == "1":
-                        udemy.settings["email"], udemy.settings["password"] = "", ""
-                        udemy.settings["use_browser_cookies"] = False
-                    elif choice == "2":
-                        udemy.settings["use_browser_cookies"] = True
-                    else:
-                        sys.exit(0)
+                        if choice == "1":
+                            udemy.settings["email"], udemy.settings["password"] = "", ""
+                            udemy.settings["use_browser_cookies"] = False
+                        elif choice == "2":
+                            udemy.settings["use_browser_cookies"] = True
+                        else:
+                            sys.exit(0)
+        finally:
+            if INTERACTIVE and has_sink:
+                configure_logging(udemy.settings.get("verbose_logging", False))
 
         udemy.save_settings()
         console.print("[bold green]Logged in successfully![/bold green]")
