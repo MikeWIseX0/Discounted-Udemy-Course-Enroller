@@ -3,9 +3,7 @@ import json
 import shutil
 import base64
 import sqlite3
-import concurrent.futures
 import requests
-import time
 from loguru import logger
 from requests.cookies import RequestsCookieJar
 from duce.core.config import get_user_data_path
@@ -476,53 +474,3 @@ def fetch_cookies(on_locked=None, on_select=None) -> tuple[dict, RequestsCookieJ
         "4. Return to this app and click 'Extract & Auto Login' (will load automatically from clipboard).\n\n"
         "5. Or paste (Ctrl+V) directly into the 'cookies.json' file in the application folder."
     )
-
-    selected_idx = 0
-    if len(successful_profiles) > 1:
-        if on_select:
-            names_list = [
-                f"{p[0]['browser']} - Profile: {p[0]['profile']}" for p in successful_profiles]
-            try:
-                selected_idx = on_select(names_list)
-                if selected_idx < 0 or selected_idx >= len(successful_profiles):
-                    selected_idx = 0
-            except Exception as e:
-                logger.error(f"Error in select profile callback: {e}")
-                selected_idx = 0
-        else:
-            logger.info(
-                "Multiple profiles found with cookies, defaulting to the first one")
-
-    chosen = successful_profiles[selected_idx]
-    c_info, cookie_dict, cookie_jar = chosen
-    logger.info(
-        f"Selected cookies from browser: {c_info['browser']} - Profile: {c_info['profile']}")
-
-    cookies_list = []
-    for cookie in cookie_jar:
-        cookies_list.append({
-            "name": cookie.name,
-            "value": cookie.value,
-            "domain": cookie.domain,
-            "path": cookie.path,
-            "secure": cookie.secure,
-            "expirationDate": cookie.expires
-        })
-    encrypt_cookies(cookies_list, get_user_data_path("udemy-cookies.json"))
-    try:
-        cookies_json_path = get_user_data_path("cookies.json")
-        temp_path = cookies_json_path + ".tmp"
-        with open(temp_path, "w", encoding="utf-8") as f:
-            json.dump(cookies_list, f, indent=4)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(temp_path, cookies_json_path)
-        logger.info(f"Saved plain cookies to {cookies_json_path}")
-    except Exception as e:
-        logger.error(f"Failed to write plain cookies.json: {e}")
-        if 'temp_path' in locals() and os.path.exists(temp_path):
-            try:
-                os.remove(temp_path)
-            except Exception:
-                pass
-    return cookie_dict, cookie_jar
