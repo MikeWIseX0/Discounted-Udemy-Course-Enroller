@@ -11,7 +11,7 @@ from duce.utils.url import cleanup_link
 from duce.scrapers.rd import scrape_rd
 from duce.scrapers.cxyz import scrape_cxyz
 from duce.scrapers.idc import scrape_idc
-from duce.scrapers.tb import scrape_tb
+from duce.scrapers.fwc import scrape_fwc
 from duce.scrapers.en import scrape_en
 from duce.scrapers.du import scrape_du
 from duce.scrapers.uf import scrape_uf
@@ -23,7 +23,7 @@ scraper_funcs = {
     "rd": scrape_rd,
     "cxyz": scrape_cxyz,
     "idc": scrape_idc,
-    "tb": scrape_tb,
+    "fwc": scrape_fwc,
     "en": scrape_en,
     "du": scrape_du,
     "uf": scrape_uf,

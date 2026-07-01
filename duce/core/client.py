@@ -121,8 +121,7 @@ class Udemy:
                     "min_rating": 0.0,
                     "stay_logged_in": {"auto": False, "manual": False},
                     "sites": {
-                        k: (k not in ("Tutorial Bar", "E-next",
-                            "Course Joiner", "Course Vania"))
+                        k: (k not in ("E-next", "Course Joiner", "Course Vania"))
                         for k in scraper_dict.keys()
                     },
                     "categories": {
@@ -169,7 +168,7 @@ class Udemy:
             },
             "sites": {
                 "Real Discount": True, "Courson": True, "IDownloadCoupons": True,
-                "Tutorial Bar": False, "E-next": False, "Discudemy": True,
+                "FreeWebCart": True, "E-next": False, "Discudemy": True,
                 "Udemy Freebies": True, "Course Joiner": False, "Course Vania": False,
                 "Coupon Scorpion": True
             },
@@ -198,6 +197,14 @@ class Udemy:
         # Interface-specific defaults
         if self.interface == "cli" and "use_browser_cookies" not in self.settings:
             self.settings["use_browser_cookies"] = False
+
+        # Migrate old "Tutorial Bar" setting to "FreeWebCart" dynamically
+        if "sites" in self.settings:
+            if "Tutorial Bar" in self.settings["sites"]:
+                tb_status = self.settings["sites"].pop("Tutorial Bar")
+                self.settings["sites"]["FreeWebCart"] = tb_status
+            if "FreeWebCart" not in self.settings["sites"]:
+                self.settings["sites"]["FreeWebCart"] = True
 
         self.settings["languages"] = dict(
             sorted(self.settings["languages"].items(),

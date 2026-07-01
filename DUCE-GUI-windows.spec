@@ -31,7 +31,7 @@ a = Analysis(
         'duce.scrapers.en',
         'duce.scrapers.idc',
         'duce.scrapers.rd',
-        'duce.scrapers.tb',
+        'duce.scrapers.fwc',
         'duce.scrapers.uf',
         'duce.utils',
         'duce.utils.html',

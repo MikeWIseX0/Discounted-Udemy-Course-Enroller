@@ -6,6 +6,7 @@ import requests
 from duce.scrapers.du import scrape_du
 from duce.scrapers.cj import scrape_cj
 from duce.scrapers.uf import scrape_uf
+from duce.scrapers.fwc import scrape_fwc
 
 
 class MockResponse:
@@ -126,12 +127,51 @@ class TestScrapersOffline(unittest.TestCase):
 
         # Run scraper
         scrape_uf(self.scraper)
-
+ 
         # Assert results
         self.assertEqual(len(self.scraper.scraped_list), 5)
         self.assertEqual(self.scraper.scraped_list[0]["title"], "Details")
         self.assertEqual(self.scraper.scraped_list[0]["link"], "https://www.udemy.com/course/test-freebie-course/?couponCode=FREEBIE")
         self.assertEqual(self.scraper.scraped_list[0]["code"], "uf")
+
+    def test_freewebcart_scraper_parsing(self):
+        # Simulated courses listing HTML
+        list_page_html = b"""
+        <html>
+            <body>
+                <a href="/course/complete-photography-course">Practical Photography</a>
+            </body>
+        </html>
+        """
+        
+        # Simulated details page HTML containing the actual udemy link
+        details_page_html = b"""
+        <html>
+            <body>
+                <h1>Practical Photography for Absolute Beginners</h1>
+                <a class="btn detail-enroll-btn" href="https://www.udemy.com/course/complete-photography-course/?couponCode=PHOTO9JULY26">Enroll Free</a>
+            </body>
+        </html>
+        """
+
+        # Set up fetch_page mock
+        def mock_fetch(url, headers=None):
+            if "courses" in url:
+                return MockResponse(list_page_html)
+            elif "course/" in url:
+                return MockResponse(details_page_html)
+            return None
+
+        self.scraper.fetch_page.side_effect = mock_fetch
+
+        # Run scraper
+        scrape_fwc(self.scraper)
+
+        # Assert results
+        self.assertEqual(len(self.scraper.scraped_list), 1)
+        self.assertEqual(self.scraper.scraped_list[0]["title"], "Practical Photography for Absolute Beginners")
+        self.assertEqual(self.scraper.scraped_list[0]["link"], "https://www.udemy.com/course/complete-photography-course/?couponCode=PHOTO9JULY26")
+        self.assertEqual(self.scraper.scraped_list[0]["code"], "fwc")
 
 
 if __name__ == "__main__":
