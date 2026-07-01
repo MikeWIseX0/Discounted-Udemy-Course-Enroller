@@ -65,6 +65,42 @@ class DatabaseManager:
             logger.debug(f"Failed to set WAL/performance pragmas: {e}")
         return conn
 
+    def _handle_db_error(self, e):
+        import os
+        import shutil
+        logger.error(f"Database operation failed: {e}. Attempting auto-healing recovery...")
+        if self.db_path == ":memory:":
+            try:
+                self._create_tables()
+            except Exception as recreate_err:
+                logger.error(f"Failed to auto-heal memory database: {recreate_err}")
+            return
+
+        try:
+            if self.backup_path and os.path.exists(self.backup_path):
+                logger.warning("Database auto-healing: attempting to restore from backup.")
+                try:
+                    if os.path.exists(self.db_path):
+                        os.remove(self.db_path)
+                    shutil.copy2(self.backup_path, self.db_path)
+                    self._create_tables()
+                    logger.info("Database successfully restored from backup during auto-healing.")
+                    return
+                except Exception as backup_err:
+                    logger.error(f"Failed to restore backup during auto-healing: {backup_err}")
+            
+            # Clean recreation fallback
+            logger.warning("Database auto-healing: recreating database from scratch.")
+            try:
+                if os.path.exists(self.db_path):
+                    os.remove(self.db_path)
+            except Exception:
+                pass
+            self._create_tables()
+            logger.info("Database successfully recreated from scratch during auto-healing.")
+        except Exception as heal_err:
+            logger.critical(f"Database auto-healing completely failed: {heal_err}")
+
     def _create_tables(self):
         try:
             conn = self._get_connection()
@@ -199,7 +235,22 @@ class DatabaseManager:
                 logger.debug(
                     f"Saved {len(courses_dict)} enrolled courses to database")
             except Exception as e:
-                logger.error(f"Failed to save enrolled courses to database: {e}")
+                self._handle_db_error(e)
+                try:
+                    conn = self._get_connection()
+                    try:
+                        with conn:
+                            cursor = conn.cursor()
+                            cursor.executemany(
+                                "INSERT OR REPLACE INTO enrolled_courses (slug, enrollment_time) VALUES (?, ?)",
+                                [(slug, time) for slug, time in courses_dict.items()]
+                            )
+                    finally:
+                        conn.close()
+                    logger.debug(
+                        f"Saved {len(courses_dict)} enrolled courses after database auto-heal")
+                except Exception as retry_e:
+                    logger.error(f"Failed to save enrolled courses even after auto-heal retry: {retry_e}")
 
     def get_enrolled_courses(self) -> dict[str, str]:
         """Retrieve all enrolled courses from the database"""
@@ -216,7 +267,19 @@ class DatabaseManager:
                 finally:
                     conn.close()
             except Exception as e:
-                logger.error(f"Failed to get enrolled courses from database: {e}")
+                self._handle_db_error(e)
+                try:
+                    conn = self._get_connection()
+                    try:
+                        cursor = conn.cursor()
+                        cursor.execute(
+                            "SELECT slug, enrollment_time FROM enrolled_courses")
+                        for slug, time in cursor.fetchall():
+                            courses[slug] = time
+                    finally:
+                        conn.close()
+                except Exception as retry_e:
+                    logger.error(f"Failed to get enrolled courses even after auto-heal retry: {retry_e}")
         return courses
 
     def save_validation(self, course_obj: object) -> None:
@@ -264,8 +327,30 @@ class DatabaseManager:
                 logger.debug(
                     f"Saved validation cache for course {slug} (coupon: {coupon_code})")
             except Exception as e:
-                logger.error(
-                    f"Failed to save validation cache for course {course_obj.slug}: {e}")
+                self._handle_db_error(e)
+                try:
+                    conn = self._get_connection()
+                    try:
+                        with conn:
+                            cursor = conn.cursor()
+                            cursor.execute("""
+                                INSERT OR REPLACE INTO validation_cache (
+                                    slug, coupon_code, is_valid, is_excluded, is_free, error, title,
+                                    course_id, price, instructors, language, category, rating,
+                                    last_update, is_coupon_valid, cached_at
+                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (
+                                slug, coupon_code, is_valid, is_excluded, is_free, error, title,
+                                course_id, price, instructors, language, category, rating,
+                                last_update, is_coupon_valid, cached_at
+                            ))
+                    finally:
+                        conn.close()
+                    logger.debug(
+                        f"Saved validation cache for course {slug} after database auto-heal")
+                except Exception as retry_e:
+                    logger.error(
+                        f"Failed to save validation cache even after auto-heal retry: {retry_e}")
 
     def get_validation(self, slug, coupon_code):
         """Retrieve a cached course validation state if it exists and is fresh (within 7 days)"""
@@ -273,7 +358,7 @@ class DatabaseManager:
             return None
         coupon_code = coupon_code or ""
         with self.lock:
-            try:
+            def _query_cache():
                 conn = self._get_connection()
                 try:
                     with conn:
@@ -336,8 +421,16 @@ class DatabaseManager:
                             }
                 finally:
                     conn.close()
+                return None
+
+            try:
+                return _query_cache()
             except Exception as e:
-                logger.error(f"Failed to query validation cache for {slug}: {e}")
+                self._handle_db_error(e)
+                try:
+                    return _query_cache()
+                except Exception as retry_e:
+                    logger.error(f"Failed to query validation cache even after auto-heal retry: {retry_e}")
             return None
 
 

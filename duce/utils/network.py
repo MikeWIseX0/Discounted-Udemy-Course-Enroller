@@ -178,12 +178,31 @@ else:
 
 
 def fetch_page(url: str, headers: dict = None) -> requests.Response:
-    """Fetches a page with 3 retries and error handling using the robust session."""
+    """Fetches a page with 3 retries and error handling using the robust session.
+    If the advanced curl_cffi session crashes, falls back on the fly to a standard requests session.
+    """
+    global session, use_cffi
     for attempt in range(3):
         try:
             return session.get(url, headers=headers, timeout=30)
         except Exception as e:
             logger.error(f"Error fetching page {url} (attempt {attempt + 1}): {e}")
+            if use_cffi:
+                logger.warning("curl_cffi session encountered an error. Auto-healing: falling back to standard requests session.")
+                try:
+                    use_cffi = False
+                    new_session = RobustRequestsSession()
+                    adapter = SystemCertHTTPAdapter(pool_connections=50, pool_maxsize=50)
+                    new_session.mount("https://", adapter)
+                    new_session.mount("http://", adapter)
+                    new_session.headers.update({
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+                        "Accept-Language": "en-US,en;q=0.9",
+                    })
+                    session = new_session
+                except Exception as fallback_err:
+                    logger.critical(f"Failed to rebuild session: {fallback_err}")
             time.sleep(1.5)
     logger.warning(f"Failed to fetch page after 3 attempts: {url}")
     return None

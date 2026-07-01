@@ -430,7 +430,18 @@ def fetch_cookies(on_locked=None, on_select=None) -> tuple[dict, RequestsCookieJ
                     with open(cookies_file, "r", encoding="utf-8") as f:
                         cookies_data = json.load(f)
                 except Exception as plain_err:
-                    logger.error(f"Failed to load {filename}: {plain_err}")
+                    logger.error(f"Failed to load {filename}: {plain_err}. Auto-healing: backing up and removing corrupt cookie file.")
+                    try:
+                        bak_file = cookies_file + ".bak"
+                        if os.path.exists(bak_file):
+                            os.remove(bak_file)
+                        os.rename(cookies_file, bak_file)
+                    except Exception as backup_err:
+                        logger.error(f"Failed to back up corrupt cookie file: {backup_err}")
+                        try:
+                            os.remove(cookies_file)
+                        except Exception:
+                            pass
                     continue
             if cookies_data:
                 cj = RequestsCookieJar()

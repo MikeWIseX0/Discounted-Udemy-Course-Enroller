@@ -436,6 +436,17 @@ class Udemy:
 
         if not r_json or not r_json.get("header", {}).get("isLoggedIn"):
             logger.error("Login Failed: " + str(r_json))
+            try:
+                for fn in ("cookies.json", "udemy-cookies.json"):
+                    fp = get_user_data_path(fn)
+                    if os.path.exists(fp):
+                        bak = fp + ".bak"
+                        if os.path.exists(bak):
+                            os.remove(bak)
+                        os.rename(fp, bak)
+                        logger.info(f"Invalid/expired cookie file {fn} has been backed up and removed.")
+            except Exception as clean_err:
+                logger.error(f"Failed to clear invalid cookies: {clean_err}")
             raise LoginException("Login Failed: Session not authenticated")
 
         self.display_name: str = r_json["header"]["user"]["display_name"]
