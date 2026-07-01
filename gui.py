@@ -18,6 +18,10 @@ if sys.stderr is not None:
     logger.add(sys.stderr, level="INFO",
                format="<level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
 
+# Global instances for thread interaction
+scraper = None
+main_window = None
+
 
 def verify_dependencies():
     required = {
@@ -2713,8 +2717,6 @@ udemy = Udemy("gui")
 logger.info("Starting CustomTkinter GUI application")
 udemy.load_settings()
 login_title, main_title = udemy.check_for_update()
-
-global main_window
 
 if __name__ == "__main__":
     app = App(udemy)
