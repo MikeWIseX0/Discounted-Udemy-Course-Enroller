@@ -14,8 +14,9 @@ from duce.core.images import icon
 
 # Configure loguru: suppress DEBUG noise by default, only show INFO and above
 logger.remove()
-logger.add(sys.stderr, level="INFO",
-           format="<level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
+if sys.stderr is not None:
+    logger.add(sys.stderr, level="INFO",
+               format="<level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
 
 
 def verify_dependencies():
@@ -2480,8 +2481,9 @@ class App(ctk.CTk):
         verbose = self.udemy.settings.get("verbose_logging", False)
         log_level = "DEBUG" if verbose else "INFO"
         logger.remove()
-        logger.add(sys.stderr, level=log_level,
-                   format="<level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
+        if sys.stderr is not None:
+            logger.add(sys.stderr, level=log_level,
+                       format="<level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
 
         settings_invalid = self.udemy.validate_settings()
         if settings_invalid:

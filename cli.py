@@ -11,10 +11,11 @@ def configure_logging(verbose=False):
     if _log_sink_id is not None:
         logger.remove(_log_sink_id)
     level = "DEBUG" if verbose else "INFO"
-    _log_sink_id = logger.add(
-        _sys.stderr, level=level,
-        format="<level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
-    )
+    if _sys.stderr is not None:
+        _log_sink_id = logger.add(
+            _sys.stderr, level=level,
+            format="<level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
+        )
 
 
 # Remove default sink and start with INFO (before settings are loaded)
