@@ -2491,6 +2491,12 @@ class App(ctk.CTk):
         if sys.stderr is not None:
             logger.add(sys.stderr, level=log_level,
                        format="<level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
+        # Re-register the GUI log sink (logger.remove() above destroyed it)
+        self.log_sink_id = logger.add(
+            self.gui_log_sink,
+            format="{time:HH:mm:ss} | {level:7} | {message}",
+            level=log_level
+        )
 
         settings_invalid = self.udemy.validate_settings()
         if settings_invalid:
