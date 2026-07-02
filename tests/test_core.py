@@ -256,5 +256,51 @@ class TestUdemyClientSettings(unittest.TestCase):
                 self.assertEqual(kwargs["timeout"], 85)
 
 
+class TestUdemyCookieRefresh(unittest.TestCase):
+    def test_save_session_cookies(self):
+        from duce.core.client import Udemy
+        from unittest.mock import patch, mock_open, MagicMock
+        import json
+
+        client = Udemy("cli")
+        client.client = MagicMock()
+        
+        # Mock cookies in session
+        cookie = MagicMock()
+        cookie.domain = ".udemy.com"
+        cookie.name = "access_token"
+        cookie.value = "new_access_token_123"
+        cookie.path = "/"
+        cookie.secure = True
+        cookie.expires = 1912345678
+        
+        client.client.cookies = [cookie]
+        client.cookie_dict = {
+            "client_id": "client_id_val",
+            "access_token": "old_access_token",
+            "csrf_token": "csrf_token_val"
+        }
+        
+        m_open = mock_open()
+        with patch("builtins.open", m_open), \
+             patch("os.path.exists", return_value=False), \
+             patch("os.replace") as mock_replace, \
+             patch("duce.core.client.encrypt_cookies") as mock_encrypt:
+            
+            client.save_session_cookies()
+            
+            # Should call encrypt_cookies
+            mock_encrypt.assert_called_once()
+            cookies_written = mock_encrypt.call_args[0][0]
+            
+            self.assertEqual(len(cookies_written), 3)
+            access_token_cookie = next(c for c in cookies_written if c["name"] == "access_token")
+            self.assertEqual(access_token_cookie["value"], "new_access_token_123")
+            self.assertEqual(access_token_cookie["expirationDate"], 1912345678)
+
+            client_id_cookie = next(c for c in cookies_written if c["name"] == "client_id")
+            self.assertEqual(client_id_cookie["value"], "client_id_val")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -9,6 +9,7 @@ This release implements robust codebase-wide exception safety, fixes UI/UX place
 - **Database Transaction Protection**: Wrapped database write queries in automated retry loops to safely recover from unexpected write/transaction locks.
 - **Session Expiration Recovery**: Automatically deletes and backs up `cookies.json` / `udemy-cookies.json` when detected as expired on Udemy servers, immediately allowing users to prompt a fresh login session.
 - **Corrupt Cookie Safety**: Implemented plain JSON parsing error guards. Corrupted cookie configuration files are automatically backed up and purged.
+- **Automated Cookie Rotation/Refresh**: Captures rotated session cookies from successful API responses during enrollment runs and automatically saves them back to `cookies.json` and `udemy-cookies.json` (encrypted) to refresh expiration timestamps.
 
 ### Bug Fixes
 - **Manual Login Placeholders**: Fixed a bug where manual login fields (email/password) programmatically inserted empty strings `""` initially, which caused CustomTkinter to clear the placeholders until they were clicked.

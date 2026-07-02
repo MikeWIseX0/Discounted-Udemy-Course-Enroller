@@ -32,6 +32,7 @@ Everything you need can be found on our documentation website: **https://techtan
 - **Dynamic Thread-Safe UI Log Box**: Features live log streaming with custom syntax highlighting, tag-based severity colors, and auto-scrolling log limits.
 - **Advanced Course Filtering**: Precise exclusion lists for instructors, custom title keywords, minimum rating levels, and specific languages/categories.
 - **Codebase-wide Auto-Healing**: Dynamic fail-safes that automatically recover from `curl_cffi` runtime crashes, retry database transaction locks, and clean up corrupted/expired cookies to prevent app lockout loops.
+- **Automated Cookie Rotation/Refresh**: Captures rotated session cookies from successful API responses during enrollment runs and automatically saves them back to `cookies.json` and `udemy-cookies.json` (encrypted) to refresh expiration timestamps and prevent session expiration.
 - **CLI Automation Support**: A terminal-based companion mode using `rich` interactive live progress grids, ideal for cron jobs and headless servers.
 
 ---

@@ -21,7 +21,7 @@ except ImportError:
 from duce.core.config import VERSION, scraper_dict, get_user_data_path, resource_path
 from duce.core.exceptions import LoginException
 from duce.core.models import Course
-from duce.core.cookies import fetch_cookies
+from duce.core.cookies import fetch_cookies, encrypt_cookies
 from duce.utils.html import parse_html
 from duce.core.db import db
 from duce.utils.network import RobustRequestsSession, RobustCffiSession, SystemCertHTTPAdapter
@@ -317,6 +317,91 @@ class Udemy:
             csrf_token=csrf_token,
         )
 
+    def save_session_cookies(self):
+        """Extract cookies from the active session and save them back to the disk to refresh expiration timestamps."""
+        if not hasattr(self, "client") or not self.client:
+            return
+
+        # Check if we have active access_token and client_id in session cookies
+        session_cookies = requests.utils.dict_from_cookiejar(self.client.cookies)
+        # Also fall back to self.cookie_dict if they are not inside session_cookies
+        cookie_dict = getattr(self, "cookie_dict", {})
+        access_token = session_cookies.get("access_token") or cookie_dict.get("access_token")
+        client_id = session_cookies.get("client_id") or cookie_dict.get("client_id")
+
+        if not access_token or not client_id:
+            logger.debug("No valid access_token or client_id found in active session, skipping cookie update.")
+            return
+
+        logger.info("Saving updated/rotated session cookies back to disk...")
+        try:
+            # Format the cookies in the same way cookie editors do (list of dicts)
+            cookies_list = []
+            for cookie in self.client.cookies:
+                c_dict = {
+                    "domain": cookie.domain,
+                    "name": cookie.name,
+                    "value": cookie.value,
+                    "path": cookie.path,
+                    "secure": cookie.secure,
+                }
+                if cookie.expires:
+                    c_dict["expirationDate"] = cookie.expires
+                cookies_list.append(c_dict)
+
+            # In case some required cookies are only in self.cookie_dict and missing in session cookies (e.g. csrftoken)
+            has_access_token = any(c["name"] == "access_token" for c in cookies_list)
+            has_client_id = any(c["name"] == "client_id" for c in cookies_list)
+
+            if not has_access_token:
+                cookies_list.append({
+                    "domain": ".udemy.com",
+                    "name": "access_token",
+                    "value": access_token,
+                    "path": "/",
+                    "secure": True
+                })
+            if not has_client_id:
+                cookies_list.append({
+                    "domain": ".udemy.com",
+                    "name": "client_id",
+                    "value": client_id,
+                    "path": "/",
+                    "secure": True
+                })
+
+            # If csrf_token or csrftoken is present, make sure it is in cookies_list
+            csrf_val = session_cookies.get("csrftoken") or cookie_dict.get("csrf_token")
+            if csrf_val:
+                has_csrf = any(c["name"] in ("csrftoken", "csrf_token") for c in cookies_list)
+                if not has_csrf:
+                    cookies_list.append({
+                        "domain": ".udemy.com",
+                        "name": "csrftoken",
+                        "value": csrf_val,
+                        "path": "/",
+                        "secure": True
+                    })
+
+            # Save encrypted to udemy-cookies.json
+            udemy_cookies_path = get_user_data_path("udemy-cookies.json")
+            encrypt_cookies(cookies_list, udemy_cookies_path)
+
+            # Save plaintext to cookies.json
+            cookies_json_path = get_user_data_path("cookies.json")
+            temp_path = cookies_json_path + ".tmp"
+            with open(temp_path, "w", encoding="utf-8") as f:
+                json.dump(cookies_list, f, indent=4)
+                f.flush()
+                try:
+                    os.fsync(f.fileno())
+                except Exception:
+                    pass
+            os.replace(temp_path, cookies_json_path)
+            logger.info(f"Saved refreshed session cookies to {cookies_json_path}")
+        except Exception as e:
+            logger.error(f"Failed to refresh/save session cookies: {e}")
+
     def fetch_cookies(self, on_locked=None, on_select=None):
         self.cookie_dict, self.cookie_jar = fetch_cookies(
             on_locked=on_locked, on_select=on_select)
@@ -475,6 +560,7 @@ class Udemy:
         self.client = s
         logger.info("Session info retrieved")
         self.get_enrolled_courses()
+        self.save_session_cookies()
 
     def get_enrolled_courses(self):
         """Get enrolled courses with automatic page-fetching retries to prevent network crashes."""
@@ -1242,6 +1328,11 @@ class Udemy:
                 logger.debug("Closed course log file")
         except Exception as e:
             logger.error(f"Error closing course log file: {e}")
+
+        try:
+            self.save_session_cookies()
+        except Exception as e:
+            logger.error(f"Error saving session cookies during cleanup: {e}")
 
         try:
             if hasattr(self, "client") and self.client:
