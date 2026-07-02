@@ -228,7 +228,7 @@ class DatabaseManager:
                         cursor = conn.cursor()
                         cursor.executemany(
                             "INSERT OR REPLACE INTO enrolled_courses (slug, enrollment_time) VALUES (?, ?)",
-                            [(slug, time) for slug, time in courses_dict.items()]
+                            [(slug.lower(), time) for slug, time in courses_dict.items()]
                         )
                 finally:
                     conn.close()
@@ -243,7 +243,7 @@ class DatabaseManager:
                             cursor = conn.cursor()
                             cursor.executemany(
                                 "INSERT OR REPLACE INTO enrolled_courses (slug, enrollment_time) VALUES (?, ?)",
-                                [(slug, time) for slug, time in courses_dict.items()]
+                                [(slug.lower(), time) for slug, time in courses_dict.items()]
                             )
                     finally:
                         conn.close()
@@ -263,7 +263,7 @@ class DatabaseManager:
                     cursor.execute(
                         "SELECT slug, enrollment_time FROM enrolled_courses")
                     for slug, time in cursor.fetchall():
-                        courses[slug] = time
+                        courses[slug.lower()] = time
                 finally:
                     conn.close()
             except Exception as e:
@@ -275,7 +275,7 @@ class DatabaseManager:
                         cursor.execute(
                             "SELECT slug, enrollment_time FROM enrolled_courses")
                         for slug, time in cursor.fetchall():
-                            courses[slug] = time
+                            courses[slug.lower()] = time
                     finally:
                         conn.close()
                 except Exception as retry_e:
@@ -288,7 +288,7 @@ class DatabaseManager:
             return
         with self.lock:
             try:
-                slug = course_obj.slug
+                slug = course_obj.slug.lower()
                 coupon_code = course_obj.coupon_code or ""
                 is_valid = 1 if course_obj.is_valid else 0
                 is_excluded = 1 if course_obj.is_excluded else 0
@@ -356,6 +356,7 @@ class DatabaseManager:
         """Retrieve a cached course validation state if it exists and is fresh (within 7 days)"""
         if not slug:
             return None
+        slug = slug.lower()
         coupon_code = coupon_code or ""
         with self.lock:
             def _query_cache():

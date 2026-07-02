@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "discounted-udemy-course-enroller"
+version = "3.0.1"
+description = "A professional, automated enroller for discounted and free Udemy courses."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "MikeWiseX0"}
+]
+dependencies = [
+    "curl_cffi==0.15.0",
+    "beautifulsoup4==4.15.0",
+    "requests==2.34.2",
+    "pyOpenSSL==26.3.0",
+    "rich==15.0.0",
+    "loguru==0.7.3",
+    "customtkinter==5.2.2",
+    "darkdetect==0.8.0",
+    "brotli==1.1.0"
+]
+
+[project.scripts]
+duce-cli = "cli:main"
+duce-gui = "gui:main"

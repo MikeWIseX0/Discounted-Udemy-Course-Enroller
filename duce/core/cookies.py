@@ -21,10 +21,14 @@ def encrypt_cookies(cookies_data, file_path):
         else:
             encrypted_data = raw_data
         temp_path = file_path + ".tmp"
-        with open(temp_path, "wb") as f:
+        fd = os.open(temp_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "wb") as f:
             f.write(encrypted_data)
             f.flush()
-            os.fsync(f.fileno())
+            try:
+                os.fsync(f.fileno())
+            except Exception:
+                pass
         os.replace(temp_path, file_path)
         logger.debug(f"Saved encrypted cookie cache to {file_path}")
     except Exception as e:
@@ -397,10 +401,14 @@ def fetch_cookies(on_locked=None, on_select=None) -> tuple[dict, RequestsCookieJ
                         try:
                             cookies_json_path = get_user_data_path("cookies.json")
                             temp_path = cookies_json_path + ".tmp"
-                            with open(temp_path, "w", encoding="utf-8") as f:
+                            fd = os.open(temp_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+                            with os.fdopen(fd, "w", encoding="utf-8") as f:
                                 json.dump(cookies_data, f, indent=4)
                                 f.flush()
-                                os.fsync(f.fileno())
+                                try:
+                                    os.fsync(f.fileno())
+                                except Exception:
+                                    pass
                             os.replace(temp_path, cookies_json_path)
                             logger.info(f"Saved clipboard cookies to {cookies_json_path}")
                         except Exception as file_err:

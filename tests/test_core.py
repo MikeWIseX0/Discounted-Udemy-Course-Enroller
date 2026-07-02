@@ -301,5 +301,12 @@ class TestUdemyCookieRefresh(unittest.TestCase):
             self.assertEqual(client_id_cookie["value"], "client_id_val")
 
 
+class TestSlugCaseInsensitivity(unittest.TestCase):
+    def test_lowercase_slugs(self):
+        from duce.core.models import Course
+        course = Course("Title", "https://www.udemy.com/course/Test-Slug-Case/")
+        self.assertEqual(course.slug, "test-slug-case")
+
+
 if __name__ == "__main__":
     unittest.main()

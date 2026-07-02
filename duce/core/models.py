@@ -54,7 +54,7 @@ class Course:
             logger.error(f"Invalid URL format: {self.url}")
             slug = None
         logger.debug(f"Course slug: {slug}")
-        self.slug = slug
+        self.slug = slug.lower() if slug else None
 
     def extract_coupon_code(self):
         """Extract coupon code from URL if present"""

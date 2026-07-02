@@ -418,7 +418,8 @@ class Udemy:
             # Save plaintext to cookies.json
             cookies_json_path = get_user_data_path("cookies.json")
             temp_path = cookies_json_path + ".tmp"
-            with open(temp_path, "w", encoding="utf-8") as f:
+            fd = os.open(temp_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
                 json.dump(cookies_list, f, indent=4)
                 f.flush()
                 try:
