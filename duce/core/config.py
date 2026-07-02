@@ -47,10 +47,13 @@ def get_user_data_path(filename):
     """Get the path for user data files """
     if getattr(sys, 'frozen', False):
         # If running as PyInstaller exe, put user data files next to the executable
-        return os.path.join(os.path.dirname(sys.executable), filename)
+        path = os.path.join(os.path.dirname(sys.executable), filename)
     else:
         # If running as script, put files in current directory
-        return os.path.join(os.path.abspath("."), filename)
+        path = os.path.join(os.path.abspath("."), filename)
+    if os.path.islink(path):
+        raise ValueError(f"Symlinks are not permitted for user data path: {path}")
+    return path
 
 
 def resource_path(relative_path):

@@ -375,7 +375,7 @@ def fetch_cookies(on_locked=None, on_select=None) -> tuple[dict, RequestsCookieJ
                 except Exception:
                     pass
 
-        if clipboard_text and (clipboard_text.strip().startswith("[") or clipboard_text.strip().startswith("{")):
+        if clipboard_text and len(clipboard_text) < 1024 * 1024 and (clipboard_text.strip().startswith("[") or clipboard_text.strip().startswith("{")):
             try:
                 cookies_data = json.loads(clipboard_text)
                 if isinstance(cookies_data, dict):
