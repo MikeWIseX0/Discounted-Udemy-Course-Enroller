@@ -322,8 +322,18 @@ class Udemy:
         if not hasattr(self, "client") or not self.client:
             return
 
-        # Check if we have active access_token and client_id in session cookies
-        session_cookies = requests.utils.dict_from_cookiejar(self.client.cookies)
+        # Safely extract session cookies dictionary based on cookies object type
+        session_cookies = {}
+        if hasattr(self.client.cookies, "get_dict"):
+            session_cookies = self.client.cookies.get_dict()
+        elif hasattr(self.client.cookies, "items"):
+            session_cookies = dict(self.client.cookies.items())
+        else:
+            try:
+                session_cookies = requests.utils.dict_from_cookiejar(self.client.cookies)
+            except Exception:
+                session_cookies = {}
+
         # Also fall back to self.cookie_dict if they are not inside session_cookies
         cookie_dict = getattr(self, "cookie_dict", {})
         access_token = session_cookies.get("access_token") or cookie_dict.get("access_token")
@@ -337,17 +347,35 @@ class Udemy:
         try:
             # Format the cookies in the same way cookie editors do (list of dicts)
             cookies_list = []
-            for cookie in self.client.cookies:
-                c_dict = {
-                    "domain": cookie.domain,
-                    "name": cookie.name,
-                    "value": cookie.value,
-                    "path": cookie.path,
-                    "secure": cookie.secure,
-                }
-                if cookie.expires:
-                    c_dict["expirationDate"] = cookie.expires
-                cookies_list.append(c_dict)
+            jar = getattr(self.client.cookies, "jar", self.client.cookies)
+
+            # Safely iterate over the cookie jar or dictionary keys
+            for item in jar:
+                if hasattr(item, "name") and hasattr(item, "value"):
+                    # It's a standard Cookie object (with domain, name, value, path, secure, expires)
+                    c_dict = {
+                        "domain": getattr(item, "domain", ""),
+                        "name": item.name,
+                        "value": item.value,
+                        "path": getattr(item, "path", "/"),
+                        "secure": getattr(item, "secure", False),
+                    }
+                    if getattr(item, "expires", None):
+                        c_dict["expirationDate"] = item.expires
+                    cookies_list.append(c_dict)
+                elif isinstance(item, str):
+                    # It's a key string (mapping behavior in curl_cffi), fetch value from mapping
+                    try:
+                        val = self.client.cookies[item]
+                        cookies_list.append({
+                            "domain": ".udemy.com",
+                            "name": item,
+                            "value": val,
+                            "path": "/",
+                            "secure": True
+                        })
+                    except Exception:
+                        pass
 
             # In case some required cookies are only in self.cookie_dict and missing in session cookies (e.g. csrftoken)
             has_access_token = any(c["name"] == "access_token" for c in cookies_list)

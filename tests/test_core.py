@@ -260,7 +260,6 @@ class TestUdemyCookieRefresh(unittest.TestCase):
     def test_save_session_cookies(self):
         from duce.core.client import Udemy
         from unittest.mock import patch, mock_open, MagicMock
-        import json
 
         client = Udemy("cli")
         client.client = MagicMock()
@@ -284,7 +283,7 @@ class TestUdemyCookieRefresh(unittest.TestCase):
         m_open = mock_open()
         with patch("builtins.open", m_open), \
              patch("os.path.exists", return_value=False), \
-             patch("os.replace") as mock_replace, \
+             patch("os.replace"), \
              patch("duce.core.client.encrypt_cookies") as mock_encrypt:
             
             client.save_session_cookies()
