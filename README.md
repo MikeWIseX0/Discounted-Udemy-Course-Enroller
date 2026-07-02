@@ -15,7 +15,7 @@
     </a>
 </p>
 
-# Discounted Udemy Course Enroller (DUCE) — v3.0.0
+# Discounted Udemy Course Enroller (DUCE) — v3.0.1
 
 A powerful, modernized automation tool designed to scrape discounted or free Udemy courses with active coupon codes from popular scraper platforms and automatically enroll them directly into your Udemy account.
 
@@ -49,18 +49,18 @@ Everything you need can be found on our documentation website: **https://techtan
 <tbody>
   <tr align="center">
     <td>
-      <a href="https://github.com/MikeWIseX0/Discounted-Udemy-Course-Enroller/releases/download/v3.0.0/DUCE-GUI-windows.exe">
+      <a href="https://github.com/MikeWIseX0/Discounted-Udemy-Course-Enroller/releases/download/v3.0.1/DUCE-GUI-windows.exe">
          <img alt="GUI Windows exe" src="https://img.shields.io/static/v1?message=Download&logo=windows&labelColor=5c5c5c&color=1182c3&label=%20&style=for-the-badge">
       </a>
     </td>
     <td>
-      <a href="https://github.com/MikeWIseX0/Discounted-Udemy-Course-Enroller/releases/download/v3.0.0/DUCE-CLI-windows.exe">
+      <a href="https://github.com/MikeWIseX0/Discounted-Udemy-Course-Enroller/releases/download/v3.0.1/DUCE-CLI-windows.exe">
          <img alt="CLI Windows exe" src="https://img.shields.io/static/v1?message=Download&logo=windows&labelColor=5c5c5c&color=1182c3&label=%20&style=for-the-badge">
       </a>
     </td>
     <td>
-      <a href="https://github.com/MikeWIseX0/Discounted-Udemy-Course-Enroller/releases/tag/v3.0.0">
-         <img alt="Release Info" src="https://img.shields.io/static/v1?message=v3.0.0&logo=github&labelColor=5c5c5c&color=28a745&label=Release&style=for-the-badge">
+      <a href="https://github.com/MikeWIseX0/Discounted-Udemy-Course-Enroller/releases/tag/v3.0.1">
+         <img alt="Release Info" src="https://img.shields.io/static/v1?message=v3.0.1&logo=github&labelColor=5c5c5c&color=28a745&label=Release&style=for-the-badge">
       </a>
     </td>
   </tr>

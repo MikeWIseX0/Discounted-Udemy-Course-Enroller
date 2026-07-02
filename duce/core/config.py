@@ -1,7 +1,7 @@
 import os
 import sys
 
-VERSION = "v3.0.0"
+VERSION = "v3.0.1"
 
 SCRAPER_URLS: dict = {
     "rd": "https://www.real-discount.com",

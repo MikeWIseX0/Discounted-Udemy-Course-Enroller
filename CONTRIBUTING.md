@@ -14,7 +14,7 @@ We welcome and encourage community contributions, including issues, bug reports,
 ## Bug Reports
 
 Please provide as much context as possible to help us diagnose and fix issues:
-1. **Application Version**: State whether you are using the GUI or CLI version and the release version (e.g., v3.0.0).
+1. **Application Version**: State whether you are using the GUI or CLI version and the release version (e.g., v3.0.1).
 2. **Operating System**: Specify your OS and version.
 3. **Log Output**: Include log details from `duce_debug.log`.
 4. **Steps to Reproduce**: Provide clear step-by-step instructions.
