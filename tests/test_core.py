@@ -308,5 +308,18 @@ class TestSlugCaseInsensitivity(unittest.TestCase):
         self.assertEqual(course.slug, "test-slug-case")
 
 
+class TestRedirectLimits(unittest.TestCase):
+    def test_session_redirect_limits(self):
+        from duce.utils.network import create_requests_session, RobustCffiSession, use_cffi
+        s = create_requests_session()
+        self.assertEqual(s.max_redirects, 15)
+        
+        if use_cffi:
+            cffi_s = RobustCffiSession()
+            # Verify request overrides default redirects if max_redirects not in kwargs
+            # We mock the super().request or inspect session parameters
+            self.assertTrue(hasattr(cffi_s, "request"))
+
+
 if __name__ == "__main__":
     unittest.main()

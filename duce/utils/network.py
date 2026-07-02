@@ -46,6 +46,7 @@ class RobustRequestsSession(requests.Session):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.allow_insecure_fallback = True
+        self.max_redirects = 15
 
     def request(self, method, url, *args, **kwargs):
         # Adjust timeout based on network_timeout config
@@ -120,6 +121,10 @@ if use_cffi:
             self._impersonate = kwargs.get("impersonate", "chrome")
 
         def request(self, method, url, *args, **kwargs):
+            # Enforce max redirect limits
+            if "max_redirects" not in kwargs:
+                kwargs["max_redirects"] = 15
+
             # Adjust timeout based on network_timeout config
             timeout = kwargs.get("timeout")
             net_timeout = getattr(self, "network_timeout", 60)
