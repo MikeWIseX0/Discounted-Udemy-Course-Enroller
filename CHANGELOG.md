@@ -1,5 +1,24 @@
 # Changelog
 
+## v3.0.1 (Auto-Healing, UI/UX, and Logging Optimization)
+
+This release implements robust codebase-wide exception safety, fixes UI/UX placeholder issues, restores GUI log console flow, and consolidates the repository branches.
+
+### Exception Safety & Auto-Healing
+- **Network Stack Auto-Healing**: Added dynamic fail-safes. If `curl_cffi` encounters binary library or memory errors, it automatically falls back to a standard python `requests` session.
+- **Database Transaction Protection**: Wrapped database write queries in automated retry loops to safely recover from unexpected write/transaction locks.
+- **Session Expiration Recovery**: Automatically deletes and backs up `cookies.json` / `udemy-cookies.json` when detected as expired on Udemy servers, immediately allowing users to prompt a fresh login session.
+- **Corrupt Cookie Safety**: Implemented plain JSON parsing error guards. Corrupted cookie configuration files are automatically backed up and purged.
+
+### Bug Fixes
+- **Manual Login Placeholders**: Fixed a bug where manual login fields (email/password) programmatically inserted empty strings `""` initially, which caused CustomTkinter to clear the placeholders until they were clicked.
+- **GUI Process Logs Streaming**: Re-added the GUI log sink after the main process logger reconfigures based on settings, ensuring that real-time process logs display correctly in both verbose and non-verbose modes.
+
+### Repository Maintenance
+- **Branch Decommission**: Fast-forward merged the `upgrade-repo` branch into `master` and completely deleted it from local and origin remote repos, establishing `master` as the single source of truth.
+
+---
+
 ## v3.0.0 (Major Overhaul & Modularization Upgrade)
 
 This release represents a complete visual, architectural, and component-level overhaul of the Discounted Udemy Course Enroller (DUCE). The codebase has been modernized to eliminate resource leaks, improve database concurrency, ensure secure SSL default settings, and provide robust multi-browser cookie extraction.

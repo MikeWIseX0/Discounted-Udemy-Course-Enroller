@@ -31,6 +31,7 @@ Everything you need can be found on our documentation website: **https://techtan
 - **Smart Validation Caching**: Employs a local SQLite database cache with a 7-day TTL to avoid redundant API checks, with dynamic filter re-evaluation when settings change.
 - **Dynamic Thread-Safe UI Log Box**: Features live log streaming with custom syntax highlighting, tag-based severity colors, and auto-scrolling log limits.
 - **Advanced Course Filtering**: Precise exclusion lists for instructors, custom title keywords, minimum rating levels, and specific languages/categories.
+- **Codebase-wide Auto-Healing**: Dynamic fail-safes that automatically recover from `curl_cffi` runtime crashes, retry database transaction locks, and clean up corrupted/expired cookies to prevent app lockout loops.
 - **CLI Automation Support**: A terminal-based companion mode using `rich` interactive live progress grids, ideal for cron jobs and headless servers.
 
 ---
@@ -100,9 +101,43 @@ If you prefer to run DUCE directly from Python, follow these setup instructions:
   ```bash
   python gui.py
   ```
-- **To run the CLI version**:
+- **To run the CLI version (Interactive Menu)**:
   ```bash
   python cli.py
+  ```
+- **To run the CLI version in Non-Interactive / Automated Mode**:
+  ```bash
+  python cli.py --non-interactive
+  ```
+- **To run the CLI version in an automation loop (repeating every N minutes)**:
+  ```bash
+  python cli.py --interval 60
+  ```
+
+### CLI Command Options
+
+You can view all available CLI arguments by running:
+```bash
+python cli.py --help
+```
+
+| Argument | Description |
+| --- | --- |
+| `-h`, `--help` | Show this help message and exit. |
+| `-v`, `--version` | Show the program version number and exit. |
+| `-n`, `--non-interactive` | Run the course enroller in non-interactive/automated mode. Defaults to this automatically if standard input is not a TTY (e.g. VPS, cron job). |
+| `-i`, `--interval <N>` | Run the enroller continuously in a loop, repeating the run once every `<N>` minutes. |
+
+### Compilation / Building Standalone Binaries
+
+Standalone executables for Windows can be generated using PyInstaller:
+- **Build GUI**:
+  ```bash
+  pyinstaller --clean DUCE-GUI-windows.spec
+  ```
+- **Build CLI**:
+  ```bash
+  pyinstaller --clean DUCE-CLI-windows.spec
   ```
 
 ---
