@@ -94,6 +94,21 @@ class RobustRequestsSession(requests.Session):
                     raise e
 
 
+def create_requests_session(timeout=60) -> RobustRequestsSession:
+    """Create and configure a robust requests session with system certs and default headers."""
+    s = RobustRequestsSession()
+    s.network_timeout = timeout
+    adapter = SystemCertHTTPAdapter(pool_connections=50, pool_maxsize=50)
+    s.mount("https://", adapter)
+    s.mount("http://", adapter)
+    s.headers.update({
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+    })
+    return s
+
+
 if use_cffi:
     class RobustCffiSession(cffi_requests.Session):
         """curl_cffi Session that automatically retries with verify=False on SSL/TLS verification errors."""
@@ -166,15 +181,7 @@ else:
             self.mount("https://", adapter)
             self.mount("http://", adapter)
 
-    session = RobustRequestsSession()
-    adapter = SystemCertHTTPAdapter(pool_connections=50, pool_maxsize=50)
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
-    session.headers.update({
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-    })
+    session = create_requests_session()
 
 
 def fetch_page(url: str, headers: dict = None) -> requests.Response:
@@ -191,16 +198,7 @@ def fetch_page(url: str, headers: dict = None) -> requests.Response:
                 logger.warning("curl_cffi session encountered an error. Auto-healing: falling back to standard requests session.")
                 try:
                     use_cffi = False
-                    new_session = RobustRequestsSession()
-                    adapter = SystemCertHTTPAdapter(pool_connections=50, pool_maxsize=50)
-                    new_session.mount("https://", adapter)
-                    new_session.mount("http://", adapter)
-                    new_session.headers.update({
-                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-                        "Accept-Language": "en-US,en;q=0.9",
-                    })
-                    session = new_session
+                    session = create_requests_session()
                 except Exception as fallback_err:
                     logger.critical(f"Failed to rebuild session: {fallback_err}")
             time.sleep(1.5)
