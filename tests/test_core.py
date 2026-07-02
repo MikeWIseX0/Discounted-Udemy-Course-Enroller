@@ -321,5 +321,14 @@ class TestRedirectLimits(unittest.TestCase):
             self.assertTrue(hasattr(cffi_s, "request"))
 
 
+class TestProxiesAndAutoSave(unittest.TestCase):
+    def test_default_proxies_loaded(self):
+        from duce.core.client import Udemy
+        client = Udemy(interface="cli")
+        client.load_settings()
+        self.assertIn("proxies", client.settings)
+        self.assertEqual(client.settings["proxies"]["http"], "")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1643,6 +1643,60 @@ class ExclusionsPage(ctk.CTkFrame):
         self.verbose_logging_cb.grid(
             row=4, column=0, padx=15, pady=(8, 15), sticky="w")
 
+        # Proxy Configuration Frame
+        self.proxy_frame = ctk.CTkFrame(
+            self.scroll_frame, fg_color="#252528", corner_radius=8)
+        self.proxy_frame.grid(
+            row=3, column=0, columnspan=2, padx=15, pady=(15, 30), sticky="ew")
+        self.proxy_frame.grid_columnconfigure(1, weight=1)
+
+        proxy_title = ctk.CTkLabel(
+            self.proxy_frame,
+            text="Proxy Configuration",
+            font=("Segoe UI", 14, "bold"),
+            text_color="#2ECC71",
+            anchor="w"
+        )
+        proxy_title.grid(row=0, column=0, columnspan=2, padx=15, pady=(12, 5), sticky="w")
+
+        http_label = ctk.CTkLabel(
+            self.proxy_frame,
+            text="HTTP Proxy:",
+            font=("Segoe UI", 12),
+            text_color="#E1E1E6"
+        )
+        http_label.grid(row=1, column=0, padx=(15, 5), pady=8, sticky="w")
+
+        self.http_proxy_entry = ctk.CTkEntry(
+            self.proxy_frame,
+            font=("Consolas", 11),
+            border_color="#3A3A3C",
+            border_width=1,
+            fg_color="#1C1C1E",
+            placeholder_text="http://username:password@host:port"
+        )
+        self.http_proxy_entry.grid(row=1, column=1, padx=(5, 15), pady=8, sticky="ew")
+        self.http_proxy_entry.insert(0, self.app.udemy.settings.get("proxies", {}).get("http", ""))
+
+        https_label = ctk.CTkLabel(
+            self.proxy_frame,
+            text="HTTPS Proxy:",
+            font=("Segoe UI", 12),
+            text_color="#E1E1E6"
+        )
+        https_label.grid(row=2, column=0, padx=(15, 5), pady=(8, 15), sticky="w")
+
+        self.https_proxy_entry = ctk.CTkEntry(
+            self.proxy_frame,
+            font=("Consolas", 11),
+            border_color="#3A3A3C",
+            border_width=1,
+            fg_color="#1C1C1E",
+            placeholder_text="http://username:password@host:port"
+        )
+        self.https_proxy_entry.grid(row=2, column=1, padx=(5, 15), pady=(8, 15), sticky="ew")
+        self.https_proxy_entry.insert(0, self.app.udemy.settings.get("proxies", {}).get("https", ""))
+
     def update_rating_label(self, val):
         self.rating_label_var.set(
             f"Min Rating: {float(val):.1f} / 5.0")
@@ -2015,6 +2069,32 @@ class App(ctk.CTk):
         self.check_startup_login()
 
     def on_closing(self):
+        # Auto-save current settings on closing if main frame is active
+        if getattr(self, "current_frame", "") == "main":
+            try:
+                values = self.get_gui_values()
+                self.udemy.settings["instructor_exclude"] = str(
+                    values["instructor_exclude"]).split()
+                self.udemy.settings["title_exclude"] = list(
+                    filter(None, values["title_exclude"].split("\n"))
+                )
+                self.udemy.settings["min_rating"] = float(values["min_rating"])
+                self.udemy.settings["course_update_threshold_months"] = int(
+                    values["course_update_threshold_months"]
+                )
+                self.udemy.settings["network_timeout"] = int(values["network_timeout"])
+                self.udemy.settings["save_txt"] = values["save_txt"]
+                self.udemy.settings["discounted_only"] = values["discounted_only"]
+                self.udemy.settings["allow_insecure_ssl_fallback"] = values["allow_insecure_ssl_fallback"]
+                self.udemy.settings["verbose_logging"] = values["verbose_logging"]
+                self.udemy.settings["proxies"] = {
+                    "http": values.get("http_proxy", ""),
+                    "https": values.get("https_proxy", "")
+                }
+                self.udemy.save_settings()
+            except Exception as save_err:
+                logger.error(f"Failed to auto-save settings on close: {save_err}")
+
         if getattr(self, "is_running", False):
             from tkinter import messagebox
             if messagebox.askyesno("Exit Confirmation", "A course enrollment process is currently active. Are you sure you want to stop the enroller and exit?"):
@@ -2453,6 +2533,8 @@ class App(ctk.CTk):
         values["discounted_only"] = self.main_frame.exclusions_page.discounted_only_var.get()
         values["allow_insecure_ssl_fallback"] = self.main_frame.exclusions_page.allow_ssl_fallback_var.get()
         values["verbose_logging"] = self.main_frame.exclusions_page.verbose_logging_var.get()
+        values["http_proxy"] = self.main_frame.exclusions_page.http_proxy_entry.get().strip()
+        values["https_proxy"] = self.main_frame.exclusions_page.https_proxy_entry.get().strip()
         return values
 
     def start_process(self):
@@ -2482,7 +2564,21 @@ class App(ctk.CTk):
         self.udemy.settings["discounted_only"] = values["discounted_only"]
         self.udemy.settings["allow_insecure_ssl_fallback"] = values["allow_insecure_ssl_fallback"]
         self.udemy.settings["verbose_logging"] = values["verbose_logging"]
+        self.udemy.settings["proxies"] = {
+            "http": values.get("http_proxy", ""),
+            "https": values.get("https_proxy", "")
+        }
         self.udemy.save_settings()
+
+        # Update proxies immediately in active sessions
+        proxies = self.udemy.settings.get("proxies", {})
+        valid_proxies = {k: v for k, v in proxies.items() if v}
+        if hasattr(self.udemy, "client") and self.udemy.client:
+            self.udemy.client.proxies.clear()
+            self.udemy.client.proxies.update(valid_proxies)
+        from duce.utils.network import session as net_session
+        net_session.proxies.clear()
+        net_session.proxies.update(valid_proxies)
 
         # Reconfigure loguru log level based on setting
         verbose = self.udemy.settings.get("verbose_logging", False)
