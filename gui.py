@@ -559,7 +559,9 @@ class LoginFrame(ctk.CTkFrame):
             font=("Segoe UI", 12)
         )
         self.email_entry.grid(row=0, column=0, padx=25, pady=8, sticky="ew")
-        self.email_entry.insert(0, self.app.udemy.settings.get("email", ""))
+        email_val = self.app.udemy.settings.get("email", "")
+        if email_val:
+            self.email_entry.insert(0, email_val)
 
         self.password_entry = ctk.CTkEntry(
             self.manual_frame,
@@ -572,8 +574,9 @@ class LoginFrame(ctk.CTkFrame):
             font=("Segoe UI", 12)
         )
         self.password_entry.grid(row=1, column=0, padx=25, pady=8, sticky="ew")
-        self.password_entry.insert(
-            0, self.app.udemy.settings.get("password", ""))
+        pwd_val = self.app.udemy.settings.get("password", "")
+        if pwd_val:
+            self.password_entry.insert(0, pwd_val)
 
         self.sli_m_var = tk.BooleanVar(
             value=self.app.udemy.settings["stay_logged_in"]["manual"])
